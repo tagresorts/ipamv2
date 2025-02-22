@@ -1,0 +1,17 @@
+{
+    "types": [
+        "Router",
+        "Server",
+        "Switch",
+        "Firewall",
+        "Workstation",
+        "Other"
+    ],
+    "locations": [
+        "Data Center",
+        "Buntag",
+        "Tanghalan",
+        "Taza",
+        "Talakayan"
+    ]
+}

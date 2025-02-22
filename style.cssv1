@@ -1,0 +1,242 @@
+/* Define CSS Variables for easier theming */
+:root {
+  --primary-color: #007bff;
+  --primary-dark: #0056b3;
+  --background-color: #f5f5f5;
+  --text-color: #333;
+  --header-bg: #fff;
+  --header-border: #eee;
+  --card-bg: #fff;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Base Styles */
+body {
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  min-height: 100vh;
+  color: var(--text-color);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background Image with Reduced Blur Effect */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('ipam.jpg') no-repeat center center fixed;
+  background-size: cover;
+  filter: blur(5px); /* Reduced blur intensity */
+  z-index: -1;
+}
+
+/* Dark Overlay for Better Contrast */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
+
+/* Container for Main Content (e.g., Add IP page) */
+.container {
+  background-color: rgba(255, 255, 255, 0.95); /* More opaque for better contrast */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--card-shadow);
+  margin: 20px;
+}
+
+/* Navigation */
+.nav {
+  background-color: var(--header-bg);
+  margin-bottom: 30px;
+  padding: 20px;
+  border-bottom: 2px solid var(--header-border);
+  box-shadow: 0 2px 4px var(--card-shadow);
+}
+
+/* Alerts */
+.alert {
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 4px;
+}
+.alert.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  margin-top: 20px;
+  width: 100%;
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 3px var(--card-shadow);
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 12px;
+  text-align: left;
+}
+th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Forms */
+form div {
+  margin: 15px 0;
+}
+input, select {
+  padding: 10px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Login Specific */
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px var(--card-shadow);
+}
+.login-form {
+  margin-top: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.login-button {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+.login-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Navbar Styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo & Title */
+.logo h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+/* User Info */
+.user-info p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Navigation Buttons */
+.nav-links {
+  display: flex;
+  gap: 10px;
+}
+.nav-btn {
+  text-decoration: none;
+  background: #fff;
+  color: var(--primary-color);
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.3s ease-in-out;
+  display: inline-block;
+}
+.nav-btn:hover {
+  background: var(--primary-dark);
+  color: #fff;
+}
+
+/* Logout Button */
+.logout-btn {
+  text-decoration: none;
+  background: #d9534f;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.3s ease-in-out;
+}
+.logout-btn:hover {
+  background: #c9302c;
+}
+
+/* Responsive Navbar */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    text-align: center;
+  }
+  .nav-links {
+    flex-direction: column;
+    margin-top: 10px;
+  }
+  .nav-btn, .logout-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Style for the "IP Address List" heading */
+.ip-list-title {
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  padding: 10px 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  .nav, .login-container {
+    padding: 15px;
+  }
+  input, select {
+    max-width: 100%;
+  }
+}
