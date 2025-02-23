@@ -10,7 +10,7 @@ if (isset($_SESSION['user_id'])) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
     try {
@@ -26,11 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: dashboard.php");
             exit;
         } else {
-            $error = "Invalid credentials";
+            $error = "Invalid username or password.";
         }
     } catch (PDOException $e) {
         error_log("Login error: " . $e->getMessage());
-        $error = "A system error occurred";
+        $error = "A system error occurred. Please try again later.";
     }
 }
 ?>
@@ -38,39 +38,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - IPAM</title>
+    <title>IP Management System - Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="style.css">
-    <style>
-      /* Specific styling for the login page */
-      .login-container {
-          max-width: 400px;
-          margin: 100px auto;
-          padding: 30px;
-          background-color: #fff;
-          border-radius: 8px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      }
-      .login-container h1 {
-          margin-bottom: 20px;
-          font-size: 24px;
-          text-align: center;
-      }
-      .footer {
-          position: fixed;
-          bottom: 10px;
-          right: 10px;
-          font-size: 10px;
-          color: #666;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css"> <!-- External stylesheet -->
 </head>
 <body>
     <div class="login-container">
         <h1>IP Management System</h1>
-        
-        <?php if ($error): ?>
+
+        <?php if (!empty($error)): ?>
             <div class="alert error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
@@ -87,7 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <button type="submit" class="login-button">Log In</button>
         </form>
+
+        <!-- Logo below the form -->
+        <div class="logo-container" style="text-align: center; margin-top: 20px;">
+            <img src="ryan_logo.png" alt="Ryan's IPAM Logo" style="width: 225px; height: auto;"> <!-- 50% larger -->
+        </div>
     </div>
+
     <div class="footer">
         &copy; <?= date('Y'); ?> Ryan's IPAM v1.0
     </div>
