@@ -59,6 +59,14 @@ else
     exit 1  # Exit with error if the schema file is missing
 fi
 
+# Create or override default admin account
+DEFAULT_USERNAME="admin"
+DEFAULT_PASSWORD="admin"  # Default password; must be changed immediately after first login
+echo "Creating or overriding default admin account..."
+DEFAULT_HASH=$(php -r "echo password_hash('$DEFAULT_PASSWORD', PASSWORD_DEFAULT);")
+mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "INSERT INTO users (username, password_hash, role, first_name, last_name) VALUES ('$DEFAULT_USERNAME', '$DEFAULT_HASH', 'admin', 'Admin', 'User') ON DUPLICATE KEY UPDATE password_hash='$DEFAULT_HASH', role='admin', first_name='Admin', last_name='User';"
+echo "Default admin account created/overridden with username 'admin' and password 'admin'. Please change the password immediately upon first login."
+
 # Update config.php with new database details
 echo "Updating $CONFIG_FILE with new database credentials..."
 cat > "$CONFIG_FILE" <<EOL

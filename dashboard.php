@@ -17,7 +17,7 @@ $status = $_GET['status'] ?? '';
 /*********************************************************
  * Build Dynamic SQL Query Based on Filters
  *********************************************************/
-$sql = "SELECT 
+$sql = "SELECT
            ips.id,
            ips.ip_address,
            ips.status,
@@ -76,7 +76,7 @@ $ips = $stmt->fetchAll();
   <div class="navbar">
     <div class="navbar-container">
       <div class="logo">
-        <h2>Ryan's IPAM</h2>
+        <img src="ryan_logo.png" alt="Logo" style="max-height: 50px;">
       </div>
       <div class="nav-links">
         <a href="dashboard.php" class="nav-btn">🏠 Home</a>
@@ -90,31 +90,33 @@ $ips = $stmt->fetchAll();
     </div>
   </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar no-print">
-  <div class="filter-bar-container">
-    <form method="GET" class="filter-form">
-      <label for="search">Search:</label>
-      <input type="text" id="search" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="IP, Assigned To, or Owner...">
-      <label for="status">Status:</label>
-      <select name="status" id="status">
-        <option value="">-- Any --</option>
-        <option value="Available" <?= ($status === 'Available' ? 'selected' : '') ?>>Available</option>
-        <option value="Reserved"  <?= ($status === 'Reserved' ? 'selected' : '') ?>>Reserved</option>
-        <option value="Assigned"  <?= ($status === 'Assigned' ? 'selected' : '') ?>>Assigned</option>
-        <option value="Expired"   <?= ($status === 'Expired' ? 'selected' : '') ?>>Expired</option>
-      </select>
-      <button type="submit" class="nav-btn">Filter</button>
-      <a href="dashboard.php" class="nav-btn">Reset</a>
-    </form>
-    <div class="filter-actions">
-      <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
-      <a href="export_ips.php?search=<?= urlencode($search) ?>&status=<?= urlencode($status) ?>" class="nav-btn">📊 Export</a>
-      <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
-      <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
+  <!-- Filter Bar -->
+  <div class="filter-bar no-print">
+    <div class="filter-bar-container">
+      <form method="GET" class="filter-form">
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="IP, Assigned To, or Owner...">
+        <label for="status">Status:</label>
+        <select name="status" id="status">
+          <option value="">-- Any --</option>
+          <option value="Available" <?= ($status === 'Available' ? 'selected' : '') ?>>Available</option>
+          <option value="Reserved"  <?= ($status === 'Reserved' ? 'selected' : '') ?>>Reserved</option>
+          <option value="Assigned"  <?= ($status === 'Assigned' ? 'selected' : '') ?>>Assigned</option>
+          <option value="Expired"   <?= ($status === 'Expired' ? 'selected' : '') ?>>Expired</option>
+        </select>
+        <button type="submit" class="nav-btn">Filter</button>
+        <a href="dashboard.php" class="nav-btn">Reset</a>
+      </form>
+      <div class="filter-actions">
+        <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
+        <a href="export_ips.php?search=<?= urlencode($search) ?>&status=<?= urlencode($status) ?>" class="nav-btn">📊 Export</a>
+        <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
+        <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
+        <!-- Backup Scheduler Button linking to the scheduler manager page -->
+        <a href="scheduler_manager.php" class="nav-btn">🗄 Backup Scheduler</a>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- Print-Only Header -->
   <div class="print-header no-print">
@@ -122,61 +124,60 @@ $ips = $stmt->fetchAll();
     <p>Printed by: <?= htmlspecialchars($_SESSION['username']) ?></p>
   </div>
 
-<!-- Main Content Container -->
-<div class="container-content">
-  <div class="card">
-    <div class="card-header">
-      <h3 class="ip-list-title">📋 IP Address List</h3>
-      <div class="current-user"><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></div>
+  <!-- Main Content Container -->
+  <div class="container-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="ip-list-title">📋 IP Address List</h3>
+        <div class="current-user"><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></div>
+      </div>
+      <?php if (count($ips) > 0): ?>
+        <table id="ipTable">
+          <tr>
+            <th>IP Address</th>
+            <th>Subnet</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Owner</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th style="display:none;">Created At</th>
+            <th style="display:none;">Created by</th>
+            <th style="display:none;">Last Updated</th>
+            <th style="display:none;">Custom Fields</th>
+            <?php if($_SESSION['role'] === 'admin'): ?>
+              <th>Actions</th>
+            <?php endif; ?>
+          </tr>
+          <?php foreach ($ips as $ip): ?>
+          <tr>
+            <td><?= htmlspecialchars($ip['ip_address']) ?></td>
+            <td><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
+            <td><?= htmlspecialchars($ip['status']) ?></td>
+            <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
+            <td><?= htmlspecialchars($ip['owner']) ?></td>
+            <td><?= htmlspecialchars($ip['description']) ?></td>
+            <td><?= htmlspecialchars($ip['type']) ?></td>
+            <td><?= htmlspecialchars($ip['location']) ?></td>
+            <td style="display:none;"><?= htmlspecialchars($ip['created_at']) ?></td>
+            <td style="display:none;"><?= htmlspecialchars($ip['created_by_username'] ?? 'N/A') ?></td>
+            <td style="display:none;"><?= htmlspecialchars($ip['last_updated']) ?></td>
+            <td style="display:none;"><?= htmlspecialchars($ip['custom_fields'] ?? '') ?></td>
+            <?php if($_SESSION['role'] === 'admin'): ?>
+              <td>
+                <a href="edit_ip.php?id=<?= $ip['id'] ?>" class="btn">Edit</a>
+                <a href="delete_ip.php?id=<?= $ip['id'] ?>" class="btn" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
+              </td>
+            <?php endif; ?>
+          </tr>
+          <?php endforeach; ?>
+        </table>
+      <?php else: ?>
+        <p>No IP addresses found. <a href="add_ip.php">Add your first IP</a></p>
+      <?php endif; ?>
     </div>
-    <!-- Table content remains as is -->
-    <?php if (count($ips) > 0): ?>
-      <table id="ipTable">
-        <tr>
-          <th>IP Address</th>
-          <th>Subnet</th>
-          <th>Status</th>
-          <th>Assigned To</th>
-          <th>Owner</th>
-          <th>Description</th>
-          <th>Type</th>
-          <th>Location</th>
-          <th style="display:none;">Created At</th>
-          <th style="display:none;">Created by</th>
-          <th style="display:none;">Last Updated</th>
-          <th style="display:none;">Custom Fields</th>
-          <?php if($_SESSION['role'] === 'admin'): ?>
-            <th>Actions</th>
-          <?php endif; ?>
-        </tr>
-        <?php foreach ($ips as $ip): ?>
-        <tr>
-          <td><?= htmlspecialchars($ip['ip_address']) ?></td>
-          <td><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
-          <td><?= htmlspecialchars($ip['status']) ?></td>
-          <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
-          <td><?= htmlspecialchars($ip['owner']) ?></td>
-          <td><?= htmlspecialchars($ip['description']) ?></td>
-          <td><?= htmlspecialchars($ip['type']) ?></td>
-          <td><?= htmlspecialchars($ip['location']) ?></td>
-          <td style="display:none;"><?= htmlspecialchars($ip['created_at']) ?></td>
-          <td style="display:none;"><?= htmlspecialchars($ip['created_by_username'] ?? 'N/A') ?></td>
-          <td style="display:none;"><?= htmlspecialchars($ip['last_updated']) ?></td>
-          <td style="display:none;"><?= htmlspecialchars($ip['custom_fields'] ?? '') ?></td>
-          <?php if($_SESSION['role'] === 'admin'): ?>
-            <td>
-              <a href="edit_ip.php?id=<?= $ip['id'] ?>" class="btn">Edit</a>
-              <a href="delete_ip.php?id=<?= $ip['id'] ?>" class="btn" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
-            </td>
-          <?php endif; ?>
-        </tr>
-        <?php endforeach; ?>
-      </table>
-    <?php else: ?>
-      <p>No IP addresses found. <a href="add_ip.php">Add your first IP</a></p>
-    <?php endif; ?>
   </div>
-</div>
 
   <!-- Column Toggle Modal Markup -->
   <div id="toggleColumnsModal" class="modal">
