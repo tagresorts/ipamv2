@@ -50,10 +50,16 @@ fi
 echo "Creating database if not exists..."
 mysql -u"$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`;"
 
-# Ensure schema file exists before applying
+# Ask whether to update the schema
 if [ -f "$SCHEMA_FILE" ]; then
-    echo "Applying schema from $SCHEMA_FILE..."
-    mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$SCHEMA_FILE"
+    read -p "Do you want to update the database schema from $SCHEMA_FILE? (y/n, default: y): " update_schema
+    update_schema=${update_schema:-y}
+    if [[ "$update_schema" == "y" ]]; then
+        echo "Applying schema from $SCHEMA_FILE..."
+        mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$SCHEMA_FILE"
+    else
+        echo "Skipping schema update."
+    fi
 else
     echo "Error: Schema file $SCHEMA_FILE not found!"
     exit 1  # Exit with error if the schema file is missing
