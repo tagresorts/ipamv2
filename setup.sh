@@ -7,12 +7,20 @@ SCHEMA_FILE="ipam-schema.sql"  # Fixed schema file
 
 echo "Starting IPAM setup..."
 
-# Pull the latest code from GitHub
+# Check if the current directory is a Git repository
 if [ -d ".git" ]; then
     echo "Pulling latest code from $BRANCH branch..."
     git pull origin $BRANCH
 else
     echo "Git repository not found. Cloning..."
+
+    # Ensure the directory is empty before cloning
+    if [ -n "$(ls -A 2>/dev/null)" ]; then
+        echo "Error: Directory is not empty and not a Git repository!"
+        echo "Please run this script in an empty directory or an existing Git repository."
+        exit 1
+    fi
+
     git clone -b $BRANCH $REPO_URL .
 fi
 
@@ -22,6 +30,12 @@ read -p "Enter database name: " DB_NAME
 read -p "Enter MySQL/MariaDB username: " DB_USER
 read -s -p "Enter password: " DB_PASS
 echo ""
+
+# Ensure database name is provided
+if [[ -z "$DB_NAME" ]]; then
+    echo "Error: Database name cannot be empty!"
+    exit 1
+fi
 
 # Set default values if user input is empty
 DB_HOST=${DB_HOST:-localhost}
@@ -34,14 +48,14 @@ fi
 
 # Create the database if it doesn't exist
 echo "Creating database if not exists..."
-mysql -u"$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
+mysql -u"$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`;"
 
-# Apply the schema if the file exists
+# Ensure schema file exists before applying
 if [ -f "$SCHEMA_FILE" ]; then
     echo "Applying schema from $SCHEMA_FILE..."
     mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$SCHEMA_FILE"
 else
-    echo "Schema file $SCHEMA_FILE not found!"
+    echo "Error: Schema file $SCHEMA_FILE not found!"
     exit 1  # Exit with error if the schema file is missing
 fi
 
