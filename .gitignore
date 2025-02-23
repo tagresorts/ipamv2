@@ -6,6 +6,8 @@
 !*.jpg
 !*.css
 !*.sql
+!*.md
+!*.png
 
 # Allow all directories
 !*/
