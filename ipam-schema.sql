@@ -1,9 +1,9 @@
-/*M!999999\- enable the sandbox mode */ 
+/*M!999999\- enable the sandbox mode */
 -- MariaDB dump 10.19  Distrib 10.5.27-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: ip_management
 -- ------------------------------------------------------
--- Server version	10.5.27-MariaDB
+-- Server version       10.5.27-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -134,5 +134,9 @@ CREATE TABLE `users` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Insert default admin user
+INSERT INTO `users` (`username`, `email`, `first_name`, `last_name`, `password_hash`, `role`, `active`)
+VALUES ('admin', 'admin@example.com', 'admin', 'admin', MD5('admin'), 'admin', 1);
 
 -- Dump completed on 2025-02-23 14:20:04
