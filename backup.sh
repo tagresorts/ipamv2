@@ -2,6 +2,7 @@
 # backup.sh
 # This script creates a backup of the IPAM database using credentials stored in config.php.
 # The backup is saved in the "backup" folder in the project root.
+# It retains only the last 5 backup files.
 
 CONFIG_FILE="config.php"
 
@@ -31,3 +32,16 @@ mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_DIR/ipa
 gzip "$BACKUP_DIR/ipam_backup_$TIMESTAMP.sql"
 
 echo "Backup saved to $BACKUP_DIR/ipam_backup_${TIMESTAMP}.sql.gz"
+
+# Retain only the last 5 backup files
+cd "$BACKUP_DIR"
+backup_files=( $(ls -1tr ipam_backup_*.sql.gz 2>/dev/null) )
+file_count=${#backup_files[@]}
+if [ $file_count -gt 5 ]; then
+  num_to_delete=$((file_count - 5))
+  echo "Removing $num_to_delete old backup file(s)..."
+  for ((i=0; i<num_to_delete; i++)); do
+    rm "${backup_files[$i]}"
+  done
+fi
+cd - > /dev/null

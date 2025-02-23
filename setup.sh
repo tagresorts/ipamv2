@@ -9,18 +9,18 @@ echo "Starting IPAM setup..."
 
 # Check if the current directory is a Git repository
 if [ -d ".git" ]; then
-    echo "Pulling latest code from $BRANCH branch..."
+    echo "Git repository detected. Forcing reset and pulling latest code from $BRANCH branch..."
+    git reset --hard HEAD
+    git clean -fd
     git pull origin $BRANCH
 else
-    echo "Git repository not found. Cloning..."
-
-    # Ensure the directory is empty before cloning
+    echo "Git repository not found."
+    # If directory is not empty, force removal of existing files before cloning
     if [ -n "$(ls -A 2>/dev/null)" ]; then
-        echo "Error: Directory is not empty and not a Git repository!"
-        echo "Please run this script in an empty directory or an existing Git repository."
-        exit 1
+        echo "Directory is not empty. Removing existing files..."
+        rm -rf ./*
     fi
-
+    echo "Cloning repository..."
     git clone -b $BRANCH $REPO_URL .
 fi
 
