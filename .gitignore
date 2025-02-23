@@ -8,6 +8,7 @@
 !*.sql
 !*.md
 !*.png
+!*.sh
 
 # Allow all directories
 !*/
