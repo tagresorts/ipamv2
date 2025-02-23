@@ -1,0 +1,11 @@
+# Ignore everything by default
+*
+
+# Allow only specific file types
+!*.php
+!*.jpg
+!*.css
+!*.sql
+
+# Allow all directories
+!*/

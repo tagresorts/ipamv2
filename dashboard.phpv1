@@ -4,69 +4,356 @@ include 'config.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit;
+    header("Location: login.php");
+    exit;
 }
 
-// Fetch IPs
-$stmt = $pdo->query("SELECT * FROM ips");
+/*********************************************************
+ * Capture Filter Criteria from GET (if provided)
+ *********************************************************/
+$search = $_GET['search'] ?? '';
+$status = $_GET['status'] ?? '';
+
+/*********************************************************
+ * Build Dynamic SQL Query Based on Filters
+ *********************************************************/
+$sql = "SELECT 
+           ips.id,
+           ips.ip_address,
+           ips.status,
+           ips.assigned_to,
+           ips.owner,
+           ips.description,
+           ips.type,
+           ips.location,
+           ips.created_at,
+           ips.last_updated,
+           subnets.subnet,
+           u.username AS created_by_username,
+           (
+             SELECT GROUP_CONCAT(CONCAT(custom_fields.field_name, ': ', custom_fields.field_value) SEPARATOR '; ')
+             FROM custom_fields
+             WHERE custom_fields.ip_id = ips.id
+           ) AS custom_fields
+        FROM ips
+        LEFT JOIN subnets ON ips.subnet_id = subnets.id
+        LEFT JOIN users u ON ips.created_by = u.id
+        WHERE 1=1 ";
+$params = [];
+
+// Apply filter criteria if provided
+if (!empty($search)) {
+    $sql .= " AND (ips.ip_address LIKE ? OR ips.assigned_to LIKE ? OR ips.owner LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+if (!empty($status)) {
+    $sql .= " AND ips.status = ? ";
+    $params[] = $status;
+}
+
+$sql .= " ORDER BY ips.ip_address ASC";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 $ips = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - IP Management System</title>
+  <title>Dashboard - Ryan's IPAM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Dark Blue Navbar */
+    .navbar {
+      background-color: #001f3f;
+      width: 100%;
+      padding: 10px 0;
+      margin-bottom: 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      color: #fff;
+    }
+    .navbar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    /* Filter Bar: Full width, same color, container inside */
+    .filter-bar {
+      width: 100%;
+      background-color: #001f3f; /* match navbar color */
+      padding: 10px 0;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .filter-bar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+    }
+    .filter-form label {
+      font-weight: 600;
+    }
+    /* Smaller search/status fields */
+    .filter-form input[type="text"],
+    .filter-form select {
+      width: 130px; /* reduce width */
+      border: none;
+      border-radius: 4px;
+      padding: 5px;
+      color: #000;
+    }
+    /* Buttons: single color scheme */
+    .nav-btn,
+    button.nav-btn,
+    .logout-btn {
+      background-color: #0056b3; 
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .nav-btn:hover,
+    button.nav-btn:hover,
+    .logout-btn:hover {
+      background-color: #003f8f;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Container for main content */
+    .container-content {
+      width: 90%;
+      max-width: 1200px;
+      margin: 20px auto;
+    }
+
+    /* Print-Only Header */
+    .print-header {
+      display: none;
+    }
+
+    /* Column toggle modal adjustments */
+    .modal-content {
+      max-width: 380px; /* narrower so checkboxes fit */
+      margin: 10% auto;
+      padding: 20px;
+      background-color: #fefefe;
+      border: 1px solid #888;
+      border-radius: 8px;
+    }
+    .column-toggles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 columns to prevent overflow */
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Navbar -->
   <div class="navbar">
-    <div class="logo">
-      <h2>IP Management System</h2>
-    </div>
-    <div class="user-info">
-      <p>Welcome, <strong><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></strong> (Role: <?= htmlspecialchars($_SESSION['role']) ?>)</p>
-    </div>
-    <div class="nav-links">
-      <a href="dashboard.php" class="nav-btn">🏠 Home</a>
-      <a href="add_ip.php" class="nav-btn">➕ Add IP</a>
-      <a href="subnets.php" class="nav-btn">🌐 Subnets</a>
-      <?php if ($_SESSION['role'] === 'admin'): ?>
-        <a href="admin_users.php" class="nav-btn">👥 Manage Users</a>
-      <?php endif; ?>
-      <a href="logout.php" class="logout-btn">🚪 Logout</a>
+    <div class="navbar-container">
+      <div class="logo">
+        <h2>Ryan's IPAM</h2>
+      </div>
+      <div class="user-info">
+        <p>Welcome, 
+          <strong><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></strong> 
+          (Role: <?= htmlspecialchars($_SESSION['role']) ?>)
+        </p>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.php" class="nav-btn">🏠 Home</a>
+        <a href="add_ip.php" class="nav-btn">➕ Add IP</a>
+        <a href="subnets.php" class="nav-btn">🌐 Subnets</a>
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+          <a href="admin_users.php" class="nav-btn">👥 Manage Users</a>
+        <?php endif; ?>
+        <a href="logout.php" class="logout-btn">🚪 Logout</a>
+      </div>
     </div>
   </div>
 
+  <!-- Filter Bar -->
+  <div class="filter-bar no-print">
+    <div class="filter-bar-container">
+      <form method="GET" class="filter-form">
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" 
+               value="<?= htmlspecialchars($search) ?>" 
+               placeholder="IP, Assigned To, or Owner...">
 
-  <div class="container">
-	<h3 class="ip-list-title">📋 IP Address List</h3>
+        <label for="status">Status:</label>
+        <select name="status" id="status">
+          <option value="">-- Any --</option>
+          <option value="Available" <?= ($status === 'Available' ? 'selected' : '') ?>>Available</option>
+          <option value="Reserved"  <?= ($status === 'Reserved'  ? 'selected' : '') ?>>Reserved</option>
+          <option value="Assigned"  <?= ($status === 'Assigned'  ? 'selected' : '') ?>>Assigned</option>
+          <option value="Expired"   <?= ($status === 'Expired'   ? 'selected' : '') ?>>Expired</option>
+        </select>
+
+        <button type="submit" class="nav-btn">Filter</button>
+        <a href="dashboard.php" class="nav-btn">Reset</a>
+      </form>
+
+      <div class="filter-actions">
+        <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
+        <a href="export_ips.php?search=<?= urlencode($search) ?>&status=<?= urlencode($status) ?>" class="nav-btn">📊 Export</a>
+        <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
+        <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print-Only Header -->
+  <div class="print-header no-print">
+    <h1>Ryan's IPAM</h1>
+    <p>Printed by: <?= htmlspecialchars($_SESSION['username']) ?></p>
+  </div>
+
+  <!-- Column Toggle Modal -->
+  <div id="toggleColumnsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="toggleClose">&times;</span>
+      <h3>Toggle Columns</h3>
+      <div class="column-toggles">
+        <!-- Row 1: Columns 0-3 -->
+        <label><input type="checkbox" data-col="0" checked> IP Address</label>
+        <label><input type="checkbox" data-col="1" checked> Subnet</label>
+        <label><input type="checkbox" data-col="2" checked> Status</label>
+        <label><input type="checkbox" data-col="3" checked> Assigned To</label>
+        <!-- Row 2: Columns 4-7 -->
+        <label><input type="checkbox" data-col="4" checked> Owner</label>
+        <label><input type="checkbox" data-col="5" checked> Description</label>
+        <label><input type="checkbox" data-col="6" checked> Type</label>
+        <label><input type="checkbox" data-col="7" checked> Location</label>
+        <!-- Row 3: Columns 8-11 -->
+        <label><input type="checkbox" data-col="8"> Created At</label>
+        <label><input type="checkbox" data-col="9"> Created by</label>
+        <label><input type="checkbox" data-col="10"> Last Updated</label>
+        <label><input type="checkbox" data-col="11"> Custom Fields</label>
+        <!-- Row 4: Column 12 (Actions) if admin -->
+        <?php if($_SESSION['role'] === 'admin'): ?>
+          <label><input type="checkbox" data-col="12" checked> Actions</label>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <div class="container-content">
+    <h3 class="ip-list-title">📋 IP Address List</h3>
     <?php if (count($ips) > 0): ?>
       <table>
         <tr>
-          <th>IP Address</th>
-          <th>Status</th>
-          <th>Assigned To</th>
-          <th>Owner</th>
-          <th>Description</th>
+          <th>IP Address</th>         <!-- Column 0 -->
+          <th>Subnet</th>            <!-- Column 1 -->
+          <th>Status</th>            <!-- Column 2 -->
+          <th>Assigned To</th>       <!-- Column 3 -->
+          <th>Owner</th>             <!-- Column 4 -->
+          <th>Description</th>       <!-- Column 5 -->
+          <th>Type</th>              <!-- Column 6 -->
+          <th>Location</th>          <!-- Column 7 -->
+          <th style="display:none;">Created At</th>      <!-- Column 8 -->
+          <th style="display:none;">Created by</th>      <!-- Column 9 -->
+          <th style="display:none;">Last Updated</th>    <!-- Column 10 -->
+          <th style="display:none;">Custom Fields</th>   <!-- Column 11 -->
+          <?php if($_SESSION['role'] === 'admin'): ?>
+            <th>Actions</th>         <!-- Column 12 -->
+          <?php endif; ?>
         </tr>
         <?php foreach ($ips as $ip): ?>
-          <tr>
-            <td><?= htmlspecialchars($ip['ip_address']) ?></td>
-            <td><?= htmlspecialchars($ip['status']) ?></td>
-            <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
-            <td><?= htmlspecialchars($ip['owner']) ?></td>
-            <td><?= htmlspecialchars($ip['description']) ?></td>
-          </tr>
+        <tr>
+          <td><?= htmlspecialchars($ip['ip_address']) ?></td>
+          <td><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
+          <td><?= htmlspecialchars($ip['status']) ?></td>
+          <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
+          <td><?= htmlspecialchars($ip['owner']) ?></td>
+          <td><?= htmlspecialchars($ip['description']) ?></td>
+          <td><?= htmlspecialchars($ip['type']) ?></td>
+          <td><?= htmlspecialchars($ip['location']) ?></td>
+          <td style="display:none;"><?= htmlspecialchars($ip['created_at']) ?></td>
+          <td style="display:none;"><?= htmlspecialchars($ip['created_by_username'] ?? 'N/A') ?></td>
+          <td style="display:none;"><?= htmlspecialchars($ip['last_updated']) ?></td>
+          <td style="display:none;"><?= htmlspecialchars($ip['custom_fields'] ?? '') ?></td>
+          <?php if($_SESSION['role'] === 'admin'): ?>
+            <td>
+              <a href="edit_ip.php?id=<?= $ip['id'] ?>" class="btn">Edit</a>
+              <a href="delete_ip.php?id=<?= $ip['id'] ?>" class="btn" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
+            </td>
+          <?php endif; ?>
+        </tr>
         <?php endforeach; ?>
       </table>
     <?php else: ?>
       <p>No IP addresses found. <a href="add_ip.php">Add your first IP</a></p>
     <?php endif; ?>
   </div>
+
+  <!-- JavaScript for Modal and Column Toggle -->
+  <script>
+    // Modal functionality for column toggle
+    var modal = document.getElementById("toggleColumnsModal");
+    var btn = document.getElementById("toggleColumnsBtn");
+    var closeBtn = document.getElementById("toggleClose");
+
+    btn.onclick = function() {
+      modal.style.display = "block";
+    }
+    closeBtn.onclick = function() {
+      modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // Column toggle functionality
+    document.addEventListener("DOMContentLoaded", function(){
+      var toggles = document.querySelectorAll(".column-toggles input[type=checkbox]");
+      toggles.forEach(function(toggle) {
+        toggle.addEventListener("change", function(){
+          var colIndex = parseInt(this.getAttribute("data-col"));
+          var table = document.querySelector("table");
+          table.querySelectorAll("tr").forEach(function(row) {
+            var cells = row.children;
+            if(cells.length > colIndex) {
+              cells[colIndex].style.display = toggle.checked ? "" : "none";
+            }
+          });
+        });
+      });
+    });
+  </script>
 </body>
 </html>
