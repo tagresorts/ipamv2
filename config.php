@@ -1,5 +1,6 @@
 <?php
 $db_host = 'localhost';
+$db_name = 'ip_management';
 $db_user = 'ipadmin';
 $db_pass = 'StrongPassword123!';
 
