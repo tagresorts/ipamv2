@@ -90,6 +90,47 @@ $ips = $stmt->fetchAll();
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Additional styles for drag & drop and modal */
+    th {
+      cursor: move;
+      user-select: none;
+    }
+    /* Modal styles */
+    .modal {
+      display: none; /* hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal.show {
+      display: block;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 300px;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+    }
+  </style>
 </head>
 <body>
   <!-- Top Navbar -->
@@ -132,7 +173,15 @@ $ips = $stmt->fetchAll();
         <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
         <a href="export_ips.php?search=<?= urlencode($search) ?>&status=<?= urlencode($status) ?>" class="nav-btn">📊 Export</a>
         <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
-        <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
+        
+<button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
+<script>
+document.getElementById("toggleColumnsBtn").addEventListener("click", function(){
+    // Attempt to open a minimal window. Note: Most browsers still display the address bar.
+    window.open("column_toggle.php", "ColumnToggle", "width=500,height=400,toolbar=no,menubar=no,location=no,status=no");
+});
+</script>
+
         <a href="scheduler_manager.php" class="nav-btn">🗄 Backup Scheduler</a>
       </div>
     </div>
@@ -197,7 +246,7 @@ $ips = $stmt->fetchAll();
   <div id="toggleColumnsModal" class="modal">
     <div class="modal-content">
       <span class="close" id="toggleClose">&times;</span>
-      <h3>Toggle Columns</h3>
+      <h3>Toggle & Rearrange Columns</h3>
       <div class="column-toggles">
         <label><input type="checkbox" data-col="0" checked> IP Address</label>
         <label><input type="checkbox" data-col="1" checked> Subnet</label>
@@ -210,54 +259,145 @@ $ips = $stmt->fetchAll();
         <label><input type="checkbox" data-col="8" checked> Company</label>
         <label><input type="checkbox" data-col="9"> Created At</label>
         <label><input type="checkbox" data-col="10"> Last Updated</label>
-        <label><input type="checkbox" data-col="11"> Actions</label>
+        <label><input type="checkbox" data-col="11" checked> Actions</label>
+      </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <button id="restoreDefaultBtn" class="btn">Restore Default View</button>
       </div>
     </div>
   </div>
 
-  <!-- JavaScript for Modal and Column Toggle -->
+  <!-- Improved JavaScript for Column Toggle, Rearrangement, and Persistence -->
   <script>
-    // Modal functionality for column toggle
-    var modal = document.getElementById("toggleColumnsModal");
-    var btn = document.getElementById("toggleColumnsBtn");
-    var closeBtn = document.getElementById("toggleClose");
+  document.addEventListener("DOMContentLoaded", function() {
+      const table = document.getElementById("ipTable");
+      if (!table) return;
 
-    btn.onclick = function() {
-      modal.style.display = "block";
-    }
-    closeBtn.onclick = function() {
-      modal.style.display = "none";
-    }
-    window.onclick = function(event) {
-      if (event.target == modal) {
-        modal.style.display = "none";
+      // Apply saved column order if available
+      const savedOrder = localStorage.getItem("ipTableColumnOrder");
+      if (savedOrder) {
+          let order = JSON.parse(savedOrder);
+          applyColumnOrder(table, order);
       }
-    }
 
-    // Column toggle functionality with initial state sync
-    document.addEventListener("DOMContentLoaded", function(){
-      var table = document.getElementById("ipTable") || document.querySelector("table");
-      var firstRow = table.querySelector("tr");
-      var toggles = document.querySelectorAll(".column-toggles input[type=checkbox]");
-      toggles.forEach(function(toggle) {
-        var colIndex = parseInt(toggle.getAttribute("data-col"));
-        if (firstRow && firstRow.children[colIndex].style.display === "none") {
-          toggle.checked = false;
-        } else {
-          toggle.checked = true;
-        }
-        toggle.addEventListener("change", function(){
-          table.querySelectorAll("tr").forEach(function(row) {
-            var cells = row.children;
-            if(cells.length > colIndex) {
-              cells[colIndex].style.display = toggle.checked ? "" : "none";
-            }
+      // Apply saved hidden column settings
+      const savedHidden = localStorage.getItem("ipTableHiddenColumns");
+      if (savedHidden) {
+          let hiddenColumns = JSON.parse(savedHidden); // array of indices that are hidden
+          hiddenColumns.forEach(idx => {
+              toggleColumnVisibility(table, idx, false);
+              const checkbox = document.querySelector(`.column-toggles input[data-col="${idx}"]`);
+              if (checkbox) checkbox.checked = false;
           });
-        });
+      }
+
+      // Make header cells draggable for rearrangement
+      const headerRow = table.querySelector("tr");
+      let draggedIndex;
+      Array.from(headerRow.children).forEach((th, index) => {
+          th.setAttribute("draggable", true);
+          th.addEventListener("dragstart", (e) => {
+              draggedIndex = index;
+              e.dataTransfer.effectAllowed = "move";
+          });
+          th.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+          });
+          th.addEventListener("drop", (e) => {
+              e.preventDefault();
+              const targetIndex = index;
+              if (draggedIndex === targetIndex) return;
+              reorderTableColumns(table, draggedIndex, targetIndex);
+              // Save new order in local storage
+              const newOrder = getCurrentColumnOrder(table);
+              localStorage.setItem("ipTableColumnOrder", JSON.stringify(newOrder));
+          });
       });
-    });
+
+      // Column toggling functionality
+      const toggles = document.querySelectorAll(".column-toggles input[type=checkbox]");
+      toggles.forEach(function(toggle) {
+          var colIndex = parseInt(toggle.getAttribute("data-col"));
+          toggle.addEventListener("change", function(){
+              const show = toggle.checked;
+              toggleColumnVisibility(table, colIndex, show);
+              let hiddenColumns = localStorage.getItem("ipTableHiddenColumns");
+              hiddenColumns = hiddenColumns ? JSON.parse(hiddenColumns) : [];
+              if (!show) {
+                  if (!hiddenColumns.includes(colIndex)) {
+                      hiddenColumns.push(colIndex);
+                  }
+              } else {
+                  hiddenColumns = hiddenColumns.filter(idx => idx !== colIndex);
+              }
+              localStorage.setItem("ipTableHiddenColumns", JSON.stringify(hiddenColumns));
+          });
+      });
+
+      // Restore default view button functionality
+      const restoreBtn = document.getElementById("restoreDefaultBtn");
+      if (restoreBtn) {
+          restoreBtn.addEventListener("click", function() {
+              localStorage.removeItem("ipTableColumnOrder");
+              localStorage.removeItem("ipTableHiddenColumns");
+              location.reload();
+          });
+      }
+
+      // Helper: Toggle column visibility
+      function toggleColumnVisibility(table, colIndex, visible) {
+          table.querySelectorAll("tr").forEach(function(row) {
+              let cells = row.children;
+              if(cells.length > colIndex) {
+                  cells[colIndex].style.display = visible ? "" : "none";
+              }
+          });
+      }
+
+      // Helper: Get current column order (array of header texts)
+      function getCurrentColumnOrder(table) {
+          const headerCells = table.querySelector("tr").children;
+          let order = [];
+          for (let i = 0; i < headerCells.length; i++) {
+              order.push(headerCells[i].innerText.trim());
+          }
+          return order;
+      }
+
+      // Helper: Apply a saved column order (array of header texts)
+      function applyColumnOrder(table, order) {
+          const rows = table.querySelectorAll("tr");
+          let currentOrder = [];
+          Array.from(rows[0].children).forEach(cell => {
+              currentOrder.push(cell.innerText.trim());
+          });
+          let newIndices = order.map(headerText => currentOrder.indexOf(headerText));
+          rows.forEach(row => {
+              let cells = Array.from(row.children);
+              let newCells = [];
+              newIndices.forEach(idx => {
+                  if (cells[idx]) {
+                      newCells.push(cells[idx]);
+                  }
+              });
+              row.innerHTML = "";
+              newCells.forEach(cell => row.appendChild(cell));
+          });
+      }
+
+      // Helper: Reorder table columns when dragging header cells
+      function reorderTableColumns(table, oldIndex, newIndex) {
+          const rows = table.querySelectorAll("tr");
+          rows.forEach(row => {
+              let cells = Array.from(row.children);
+              const cell = cells.splice(oldIndex, 1)[0];
+              cells.splice(newIndex, 0, cell);
+              row.innerHTML = "";
+              cells.forEach(c => row.appendChild(c));
+          });
+      }
+  });
   </script>
 </body>
 </html>
-
-
