@@ -184,12 +184,22 @@ if (isset($_GET['success'])) {
     input[type="text"], input[type="email"], input[type="password"], select, textarea {
         width: 100%; padding: 8px; box-sizing: border-box;
     }
+    /* Optional: additional styling for nav buttons */
+    .nav-btn.btn {
+      background-color: #0078d7;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="nav">
-    <h1>User Management</h1>
-    <a href="dashboard.php" class="nav-btn">Back to Dashboard</a>
+    <a href="dashboard.php" class="nav-btn">← Back to Dashboard</a>
+    <a href="admin_users.php?action=add" class="nav-btn btn">Add New User</a>
+    <a href="admin_users.php?action=list" class="nav-btn btn">Users List</a>
   </div>
   <div class="container">
     <?php if (!empty($error)): ?>
@@ -201,9 +211,6 @@ if (isset($_GET['success'])) {
 
     <?php if ($action === 'list'): ?>
       <h2>Existing Users</h2>
-      <div style="margin-bottom: 20px;">
-        <a href="admin_users.php?action=add" class="btn">Add New User</a>
-      </div>
       <table>
         <tr>
           <th>Username</th>
