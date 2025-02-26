@@ -2,28 +2,34 @@
 session_start();
 include 'config.php';
 
-// Ensure the user is logged in (optionally restrict to admin if desired)
+// Ensure the user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
+// Get allowed companies for the current user (multi-tenancy)
+$stmt = $pdo->prepare("SELECT company_id FROM user_companies WHERE user_id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$userCompanies = $stmt->fetchAll(PDO::FETCH_COLUMN);
+if (empty($userCompanies)) {
+    $userCompanies = [0];
+}
+
 $uploadError = "";
 $uploadMessage = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if a file is uploaded and there is no error
+    // Check if a file is uploaded and no error occurred
     if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] == 0) {
         $csvFile = $_FILES['csv_file']['tmp_name'];
         if (($handle = fopen($csvFile, "r")) !== false) {
-            // Assume first row is header
+            // Read and normalize the header row
             $header = fgetcsv($handle, 1000, ",");
-            // Normalize header: lower-case and trim spaces
-            $header = array_map(function($col) {
-                return strtolower(trim($col));
-            }, $header);
+            $header = array_map('trim', $header);
+            $header = array_map('strtolower', $header);
             
-            // Expected header columns: ip_address, subnet, status, description, assigned_to, owner, type, location
-            $requiredColumns = ["ip_address", "subnet", "status", "description", "assigned_to", "owner", "type", "location"];
+            // Expected headers
+            $requiredColumns = ["subnet", "ip", "status", "description", "assigned_to", "owner", "type", "location", "company_id"];
             $missingColumns = array_diff($requiredColumns, $header);
             if (count($missingColumns) > 0) {
                 $uploadError = "CSV file is missing required columns: " . implode(", ", $missingColumns);
@@ -33,44 +39,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errorRows = [];
                 while (($data = fgetcsv($handle, 1000, ",")) !== false) {
                     $rowCount++;
-                    // Create associative array for the row
+                    // Map the CSV row to header columns
                     $row = array_combine($header, $data);
                     
                     // Validate required fields
-                    if (empty($row['ip_address']) || empty($row['subnet'])) {
+                    if (empty($row['ip']) || empty($row['subnet']) || empty($row['company_id'])) {
                         $errorRows[] = $rowCount;
                         continue;
                     }
                     
-                    $ip_address = trim($row['ip_address']);
-                    $subnetName = trim($row['subnet']);
-                    $status = !empty($row['status']) ? trim($row['status']) : "Available";
-                    $description = !empty($row['description']) ? trim($row['description']) : "";
-                    $assigned_to = !empty($row['assigned_to']) ? trim($row['assigned_to']) : "";
-                    $owner = !empty($row['owner']) ? trim($row['owner']) : "";
-                    $type = !empty($row['type']) ? trim($row['type']) : "Unknown";
-                    $location = !empty($row['location']) ? trim($row['location']) : "Not Specified";
+                    $ip_address   = trim($row['ip']);
+                    $subnetName   = trim($row['subnet']);
+                    $status       = !empty($row['status']) ? trim($row['status']) : "Available";
+                    $description  = !empty($row['description']) ? trim($row['description']) : "";
+                    $assigned_to  = !empty($row['assigned_to']) ? trim($row['assigned_to']) : "";
+                    $owner        = !empty($row['owner']) ? trim($row['owner']) : "";
+                    $type         = !empty($row['type']) ? trim($row['type']) : "Unknown";
+                    $location     = !empty($row['location']) ? trim($row['location']) : "Not Specified";
+                    $company_id   = trim($row['company_id']);
                     
-                    // Look up subnet_id based on the subnet name
-                    $stmt = $pdo->prepare("SELECT id FROM subnets WHERE subnet = ?");
-                    $stmt->execute([$subnetName]);
-                    $subnetRow = $stmt->fetch();
-                    if ($subnetRow) {
-                        $subnet_id = $subnetRow['id'];
+                    // Verify that the company_id is allowed for the user
+                    if (!in_array($company_id, $userCompanies)) {
+                        $errorRows[] = $rowCount;
+                        continue;
+                    }
+                    
+                    // Look up subnet_id based on subnet name and company_id
+                    $stmtSub = $pdo->prepare("SELECT id FROM subnets WHERE subnet = ? AND company_id = ?");
+                    $stmtSub->execute([$subnetName, $company_id]);
+                    $subnetData = $stmtSub->fetch(PDO::FETCH_ASSOC);
+                    if ($subnetData) {
+                        $subnet_id = $subnetData['id'];
                     } else {
-                        // If subnet not found, skip this row
+                        // Subnet not found or not associated with the company
                         $errorRows[] = $rowCount;
                         continue;
                     }
                     
-                    // Insert the IP record
-                    $insertStmt = $pdo->prepare("
+                    // Insert the IP record into the ips table
+                    $stmtInsert = $pdo->prepare("
                         INSERT INTO ips 
-                        (ip_address, subnet_id, status, description, assigned_to, owner, type, location, created_by)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (ip_address, subnet_id, status, description, assigned_to, owner, type, location, created_by, company_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     try {
-                        $insertStmt->execute([$ip_address, $subnet_id, $status, $description, $assigned_to, $owner, $type, $location, $_SESSION['user_id']]);
+                        $stmtInsert->execute([$ip_address, $subnet_id, $status, $description, $assigned_to, $owner, $type, $location, $_SESSION['user_id'], $company_id]);
                         $insertCount++;
                     } catch (PDOException $e) {
                         $errorRows[] = $rowCount;
@@ -95,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bulk Upload - Ryan's IPAM</title>
+    <title>Bulk Upload - IP Management System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
@@ -151,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn">Upload CSV</button>
         </div>
     </form>
-    <p>CSV Format: The first row should contain the headers: <strong>ip_address, subnet, status, description, assigned_to, owner, type, location</strong></p>
+    <p>CSV Format: The first row should contain the headers: <strong>subnet, ip, status, description, assigned_to, owner, type, location, company_id</strong></p>
 </div>
 </body>
 </html>
