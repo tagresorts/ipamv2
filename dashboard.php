@@ -15,7 +15,6 @@ $stmt = $pdo->prepare("SELECT company_id FROM user_companies WHERE user_id = ?")
 $stmt->execute([$_SESSION['user_id']]);
 $companyIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
 if (empty($companyIds)) {
-    // If the user isn't associated with any company, set to 0 to return no results.
     $companyIds = [0];
 }
 
@@ -91,22 +90,22 @@ $ips = $stmt->fetchAll();
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Additional styles for drag & drop and modal */
+    /* Draggable columns */
     th {
       cursor: move;
       user-select: none;
     }
-    /* Modal styles */
+    /* Inline Modal Styles */
     .modal {
-      display: none; /* hidden by default */
+      display: none; /* Hidden by default */
       position: fixed;
-      z-index: 1000;
+      z-index: 2000;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
       overflow: auto;
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0,0,0,0.4);
     }
     .modal.show {
       display: block;
@@ -116,19 +115,41 @@ $ips = $stmt->fetchAll();
       margin: 10% auto;
       padding: 20px;
       border: 1px solid #888;
-      width: 300px;
+      width: 80%;
+      max-width: 500px;
       border-radius: 8px;
     }
     .close {
-      color: #aaa;
       float: right;
-      font-size: 28px;
+      font-size: 24px;
       font-weight: bold;
       cursor: pointer;
+      color: #aaa;
     }
-    .close:hover,
-    .close:focus {
-      color: black;
+    .close:hover, .close:focus {
+      color: #000;
+    }
+    /* Grid layout for toggle checkboxes */
+    .toggle-container {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .toggle-item {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #f9f9f9;
+      text-align: center;
+    }
+    .button-group {
+      text-align: center;
+    }
+    .button-group button {
+      padding: 8px 12px;
+      margin: 0 5px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -137,13 +158,13 @@ $ips = $stmt->fetchAll();
   <div class="navbar">
     <div class="navbar-container">
       <div class="logo">
-        <img src="ryan_logo.png" alt="Logo" style="max-height: 50px;">
+        <img src="ryan_logo.png" alt="Logo" style="max-height:50px;">
       </div>
       <div class="nav-links">
         <a href="dashboard.php" class="nav-btn">🏠 Home</a>
         <a href="manage_ip.php?action=list" class="nav-btn">➕ Manage IP</a>
         <a href="manage_subnets.php?action=list" class="nav-btn">🌐 Manage Subnets</a>
-        <?php if ($_SESSION['role'] === 'admin'): ?>
+        <?php if($_SESSION['role'] === 'admin'): ?>
           <a href="admin_users.php" class="nav-btn">👥 Manage Users</a>
           <a href="manage_companies.php" class="nav-btn">🏢 Manage Companies</a>
         <?php endif; ?>
@@ -173,15 +194,7 @@ $ips = $stmt->fetchAll();
         <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
         <a href="export_ips.php?search=<?= urlencode($search) ?>&status=<?= urlencode($status) ?>" class="nav-btn">📊 Export</a>
         <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
-        
-<button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
-<script>
-document.getElementById("toggleColumnsBtn").addEventListener("click", function(){
-    // Attempt to open a minimal window. Note: Most browsers still display the address bar.
-    window.open("column_toggle.php", "ColumnToggle", "width=500,height=400,toolbar=no,menubar=no,location=no,status=no");
-});
-</script>
-
+        <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
         <a href="scheduler_manager.php" class="nav-btn">🗄 Backup Scheduler</a>
       </div>
     </div>
@@ -200,204 +213,240 @@ document.getElementById("toggleColumnsBtn").addEventListener("click", function()
         <h3 class="ip-list-title">📋 IP Address List</h3>
         <div class="current-user"><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></div>
       </div>
-      <?php if (count($ips) > 0): ?>
-        <table id="ipTable">
-          <tr>
-            <th>IP Address</th>
-            <th>Subnet</th>
-            <th>Status</th>
-            <th>Assigned To</th>
-            <th>Owner</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Location</th>
-            <th>Company</th>
-            <th>Created At</th>
-            <th>Last Updated</th>
-            <th>Actions</th>
-          </tr>
-          <?php foreach ($ips as $ip): ?>
-          <tr>
-            <td><?= htmlspecialchars($ip['ip_address']) ?></td>
-            <td><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($ip['status']) ?></td>
-            <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
-            <td><?= htmlspecialchars($ip['owner']) ?></td>
-            <td><?= htmlspecialchars($ip['description']) ?></td>
-            <td><?= htmlspecialchars($ip['type']) ?></td>
-            <td><?= htmlspecialchars($ip['location']) ?></td>
-            <td><?= htmlspecialchars($ip['company_name'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($ip['created_at']) ?></td>
-            <td><?= htmlspecialchars($ip['last_updated']) ?></td>
-            <td>
-              <a href="manage_ip.php?action=edit&id=<?= $ip['id'] ?>" class="btn">Edit</a>
-              <a href="manage_ip.php?action=delete&id=<?= $ip['id'] ?>" class="btn" onclick="return confirm('Are you sure you want to delete this IP?');">Delete</a>
-            </td>
-          </tr>
-          <?php endforeach; ?>
-        </table>
+      <?php if(count($ips) > 0): ?>
+      <table id="ipTable">
+        <tr>
+          <th>IP Address</th>
+          <th>Subnet</th>
+          <th>Status</th>
+          <th>Assigned To</th>
+          <th>Owner</th>
+          <th>Description</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Company</th>
+          <th>Created At</th>
+          <th>Last Updated</th>
+          <th>Actions</th>
+        </tr>
+        <?php foreach($ips as $ip): ?>
+        <tr>
+          <td><?= htmlspecialchars($ip['ip_address']) ?></td>
+          <td><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
+          <td><?= htmlspecialchars($ip['status']) ?></td>
+          <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
+          <td><?= htmlspecialchars($ip['owner']) ?></td>
+          <td><?= htmlspecialchars($ip['description']) ?></td>
+          <td><?= htmlspecialchars($ip['type']) ?></td>
+          <td><?= htmlspecialchars($ip['location']) ?></td>
+          <td><?= htmlspecialchars($ip['company_name'] ?? 'N/A') ?></td>
+          <td><?= htmlspecialchars($ip['created_at']) ?></td>
+          <td><?= htmlspecialchars($ip['last_updated']) ?></td>
+          <td>
+            <a href="manage_ip.php?action=edit&id=<?= $ip['id'] ?>" class="btn">Edit</a>
+            <a href="manage_ip.php?action=delete&id=<?= $ip['id'] ?>" class="btn" onclick="return confirm('Are you sure you want to delete this IP?');">Delete</a>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </table>
       <?php else: ?>
-        <p>No IP addresses found. <a href="manage_ip.php?action=add">Add your first IP</a></p>
+      <p>No IP addresses found. <a href="manage_ip.php?action=add">Add your first IP</a></p>
       <?php endif; ?>
     </div>
   </div>
 
-  <!-- Column Toggle Modal Markup -->
+  <!-- Inline Column Toggle Modal -->
   <div id="toggleColumnsModal" class="modal">
     <div class="modal-content">
       <span class="close" id="toggleClose">&times;</span>
       <h3>Toggle & Rearrange Columns</h3>
-      <div class="column-toggles">
-        <label><input type="checkbox" data-col="0" checked> IP Address</label>
-        <label><input type="checkbox" data-col="1" checked> Subnet</label>
-        <label><input type="checkbox" data-col="2" checked> Status</label>
-        <label><input type="checkbox" data-col="3" checked> Assigned To</label>
-        <label><input type="checkbox" data-col="4" checked> Owner</label>
-        <label><input type="checkbox" data-col="5" checked> Description</label>
-        <label><input type="checkbox" data-col="6" checked> Type</label>
-        <label><input type="checkbox" data-col="7" checked> Location</label>
-        <label><input type="checkbox" data-col="8" checked> Company</label>
-        <label><input type="checkbox" data-col="9"> Created At</label>
-        <label><input type="checkbox" data-col="10"> Last Updated</label>
-        <label><input type="checkbox" data-col="11" checked> Actions</label>
+      <div class="column-toggles toggle-container">
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="0" checked> IP Address</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="1" checked> Subnet</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="2" checked> Status</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="3" checked> Assigned To</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="4" checked> Owner</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="5" checked> Description</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="6" checked> Type</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="7" checked> Location</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="8" checked> Company</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="9"> Created At</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="10"> Last Updated</label>
+        </div>
+        <div class="toggle-item">
+          <label><input type="checkbox" data-col="11" checked> Actions</label>
+        </div>
       </div>
-      <div style="text-align: center; margin-top: 10px;">
-        <button id="restoreDefaultBtn" class="btn">Restore Default View</button>
+      <div class="button-group">
+        <button id="saveBtn">Save</button>
+        <button id="restoreBtn">Restore Default View</button>
       </div>
     </div>
   </div>
 
-  <!-- Improved JavaScript for Column Toggle, Rearrangement, and Persistence -->
+  <!-- JavaScript for Inline Modal, Column Toggling, and Drag & Drop -->
   <script>
-  document.addEventListener("DOMContentLoaded", function() {
-      const table = document.getElementById("ipTable");
-      if (!table) return;
+    // Inline modal toggle
+    const modal = document.getElementById("toggleColumnsModal");
+    const toggleBtn = document.getElementById("toggleColumnsBtn");
+    const closeBtn = document.getElementById("toggleClose");
+    toggleBtn.addEventListener("click", function() {
+        modal.classList.add("show");
+    });
+    closeBtn.addEventListener("click", function() {
+        modal.classList.remove("show");
+    });
+    window.addEventListener("click", function(e) {
+        if (e.target == modal) {
+            modal.classList.remove("show");
+        }
+    });
 
-      // Apply saved column order if available
-      const savedOrder = localStorage.getItem("ipTableColumnOrder");
-      if (savedOrder) {
-          let order = JSON.parse(savedOrder);
-          applyColumnOrder(table, order);
-      }
+    // Column toggling in modal
+    document.addEventListener("DOMContentLoaded", function() {
+        const table = document.getElementById("ipTable");
+        if (!table) return;
 
-      // Apply saved hidden column settings
-      const savedHidden = localStorage.getItem("ipTableHiddenColumns");
-      if (savedHidden) {
-          let hiddenColumns = JSON.parse(savedHidden); // array of indices that are hidden
-          hiddenColumns.forEach(idx => {
-              toggleColumnVisibility(table, idx, false);
-              const checkbox = document.querySelector(`.column-toggles input[data-col="${idx}"]`);
-              if (checkbox) checkbox.checked = false;
-          });
-      }
+        // Apply saved column order if available
+        const savedOrder = localStorage.getItem("ipTableColumnOrder");
+        if (savedOrder) {
+            let order = JSON.parse(savedOrder);
+            applyColumnOrder(table, order);
+        }
 
-      // Make header cells draggable for rearrangement
-      const headerRow = table.querySelector("tr");
-      let draggedIndex;
-      Array.from(headerRow.children).forEach((th, index) => {
-          th.setAttribute("draggable", true);
-          th.addEventListener("dragstart", (e) => {
-              draggedIndex = index;
-              e.dataTransfer.effectAllowed = "move";
-          });
-          th.addEventListener("dragover", (e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-          });
-          th.addEventListener("drop", (e) => {
-              e.preventDefault();
-              const targetIndex = index;
-              if (draggedIndex === targetIndex) return;
-              reorderTableColumns(table, draggedIndex, targetIndex);
-              // Save new order in local storage
-              const newOrder = getCurrentColumnOrder(table);
-              localStorage.setItem("ipTableColumnOrder", JSON.stringify(newOrder));
-          });
-      });
+        // Apply saved hidden column settings
+        const savedHidden = localStorage.getItem("ipTableHiddenColumns");
+        if (savedHidden) {
+            let hiddenColumns = JSON.parse(savedHidden);
+            hiddenColumns.forEach(idx => {
+                toggleColumnVisibility(table, idx, false);
+                const checkbox = document.querySelector(`.toggle-container input[data-col="${idx}"]`);
+                if (checkbox) checkbox.checked = false;
+            });
+        }
 
-      // Column toggling functionality
-      const toggles = document.querySelectorAll(".column-toggles input[type=checkbox]");
-      toggles.forEach(function(toggle) {
-          var colIndex = parseInt(toggle.getAttribute("data-col"));
-          toggle.addEventListener("change", function(){
-              const show = toggle.checked;
-              toggleColumnVisibility(table, colIndex, show);
-              let hiddenColumns = localStorage.getItem("ipTableHiddenColumns");
-              hiddenColumns = hiddenColumns ? JSON.parse(hiddenColumns) : [];
-              if (!show) {
-                  if (!hiddenColumns.includes(colIndex)) {
-                      hiddenColumns.push(colIndex);
-                  }
-              } else {
-                  hiddenColumns = hiddenColumns.filter(idx => idx !== colIndex);
-              }
-              localStorage.setItem("ipTableHiddenColumns", JSON.stringify(hiddenColumns));
-          });
-      });
+        // Draggable header cells
+        const headerRow = table.querySelector("tr");
+        let draggedIndex;
+        Array.from(headerRow.children).forEach((th, index) => {
+            th.setAttribute("draggable", true);
+            th.addEventListener("dragstart", (e) => {
+                draggedIndex = index;
+                e.dataTransfer.effectAllowed = "move";
+            });
+            th.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+            });
+            th.addEventListener("drop", (e) => {
+                e.preventDefault();
+                const targetIndex = index;
+                if (draggedIndex === targetIndex) return;
+                reorderTableColumns(table, draggedIndex, targetIndex);
+                const newOrder = getCurrentColumnOrder(table);
+                localStorage.setItem("ipTableColumnOrder", JSON.stringify(newOrder));
+            });
+        });
 
-      // Restore default view button functionality
-      const restoreBtn = document.getElementById("restoreDefaultBtn");
-      if (restoreBtn) {
-          restoreBtn.addEventListener("click", function() {
-              localStorage.removeItem("ipTableColumnOrder");
-              localStorage.removeItem("ipTableHiddenColumns");
-              location.reload();
-          });
-      }
+        // Modal toggle checkboxes functionality
+        const toggles = document.querySelectorAll(".toggle-container input[type=checkbox]");
+        toggles.forEach(function(toggle) {
+            var colIndex = parseInt(toggle.getAttribute("data-col"));
+            toggle.addEventListener("change", function(){
+                const show = toggle.checked;
+                toggleColumnVisibility(table, colIndex, show);
+                let hiddenColumns = localStorage.getItem("ipTableHiddenColumns");
+                hiddenColumns = hiddenColumns ? JSON.parse(hiddenColumns) : [];
+                if (!show) {
+                    if (!hiddenColumns.includes(colIndex)) {
+                        hiddenColumns.push(colIndex);
+                    }
+                } else {
+                    hiddenColumns = hiddenColumns.filter(idx => idx !== colIndex);
+                }
+                localStorage.setItem("ipTableHiddenColumns", JSON.stringify(hiddenColumns));
+            });
+        });
 
-      // Helper: Toggle column visibility
-      function toggleColumnVisibility(table, colIndex, visible) {
-          table.querySelectorAll("tr").forEach(function(row) {
-              let cells = row.children;
-              if(cells.length > colIndex) {
-                  cells[colIndex].style.display = visible ? "" : "none";
-              }
-          });
-      }
+        // Restore default view button in modal
+        const restoreBtn = document.getElementById("restoreBtn");
+        restoreBtn.addEventListener("click", function() {
+            localStorage.removeItem("ipTableColumnOrder");
+            localStorage.removeItem("ipTableHiddenColumns");
+            location.reload();
+        });
 
-      // Helper: Get current column order (array of header texts)
-      function getCurrentColumnOrder(table) {
-          const headerCells = table.querySelector("tr").children;
-          let order = [];
-          for (let i = 0; i < headerCells.length; i++) {
-              order.push(headerCells[i].innerText.trim());
-          }
-          return order;
-      }
+        // Helper functions
+        function toggleColumnVisibility(table, colIndex, visible) {
+            table.querySelectorAll("tr").forEach(function(row) {
+                let cells = row.children;
+                if(cells.length > colIndex) {
+                    cells[colIndex].style.display = visible ? "" : "none";
+                }
+            });
+        }
 
-      // Helper: Apply a saved column order (array of header texts)
-      function applyColumnOrder(table, order) {
-          const rows = table.querySelectorAll("tr");
-          let currentOrder = [];
-          Array.from(rows[0].children).forEach(cell => {
-              currentOrder.push(cell.innerText.trim());
-          });
-          let newIndices = order.map(headerText => currentOrder.indexOf(headerText));
-          rows.forEach(row => {
-              let cells = Array.from(row.children);
-              let newCells = [];
-              newIndices.forEach(idx => {
-                  if (cells[idx]) {
-                      newCells.push(cells[idx]);
-                  }
-              });
-              row.innerHTML = "";
-              newCells.forEach(cell => row.appendChild(cell));
-          });
-      }
+        function getCurrentColumnOrder(table) {
+            const headerCells = table.querySelector("tr").children;
+            let order = [];
+            for (let i = 0; i < headerCells.length; i++) {
+                order.push(headerCells[i].innerText.trim());
+            }
+            return order;
+        }
 
-      // Helper: Reorder table columns when dragging header cells
-      function reorderTableColumns(table, oldIndex, newIndex) {
-          const rows = table.querySelectorAll("tr");
-          rows.forEach(row => {
-              let cells = Array.from(row.children);
-              const cell = cells.splice(oldIndex, 1)[0];
-              cells.splice(newIndex, 0, cell);
-              row.innerHTML = "";
-              cells.forEach(c => row.appendChild(c));
-          });
-      }
-  });
+        function applyColumnOrder(table, order) {
+            const rows = table.querySelectorAll("tr");
+            let currentOrder = [];
+            Array.from(rows[0].children).forEach(cell => {
+                currentOrder.push(cell.innerText.trim());
+            });
+            let newIndices = order.map(headerText => currentOrder.indexOf(headerText));
+            rows.forEach(row => {
+                let cells = Array.from(row.children);
+                let newCells = [];
+                newIndices.forEach(idx => {
+                    if (cells[idx]) {
+                        newCells.push(cells[idx]);
+                    }
+                });
+                row.innerHTML = "";
+                newCells.forEach(cell => row.appendChild(cell));
+            });
+        }
+
+        function reorderTableColumns(table, oldIndex, newIndex) {
+            const rows = table.querySelectorAll("tr");
+            rows.forEach(row => {
+                let cells = Array.from(row.children);
+                const cell = cells.splice(oldIndex, 1)[0];
+                cells.splice(newIndex, 0, cell);
+                row.innerHTML = "";
+                cells.forEach(c => row.appendChild(c));
+            });
+        }
+    });
   </script>
 </body>
 </html>
