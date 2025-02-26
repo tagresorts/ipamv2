@@ -1,22 +1,27 @@
 #!/bin/bash
 # backup.sh
-# This script creates a backup of the IPAM database using credentials stored in config.php.
+# This script creates a backup of the IPAM database using credentials stored in .env.
 # The backup is saved in the "backup" folder in the project root.
 # It retains only the last 5 backup files.
 
-CONFIG_FILE="config.php"
+ENV_FILE=".env"
 
-# Check if config.php exists
-if [ ! -f "$CONFIG_FILE" ]; then
-  echo "Error: config.php not found!"
+# Check if .env exists
+if [ ! -f "$ENV_FILE" ]; then
+  echo "Error: $ENV_FILE not found!"
   exit 1
 fi
 
-# Extract credentials from config.php using grep and cut
-DB_HOST=$(grep "^\$db_host" "$CONFIG_FILE" | cut -d"'" -f2)
-DB_NAME=$(grep "^\$db_name" "$CONFIG_FILE" | cut -d"'" -f2)
-DB_USER=$(grep "^\$db_user" "$CONFIG_FILE" | cut -d"'" -f2)
-DB_PASS=$(grep "^\$db_pass" "$CONFIG_FILE" | cut -d"'" -f2)
+# Source the .env file to load environment variables
+set -a
+source "$ENV_FILE"
+set +a
+
+# Verify that all required variables are set
+if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
+  echo "Error: One or more required database credentials are missing in $ENV_FILE"
+  exit 1
+fi
 
 # Set the backup directory inside the project folder
 BACKUP_DIR="./backup"

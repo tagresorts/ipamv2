@@ -65,6 +65,18 @@ else
     exit 1  # Exit with error if the schema file is missing
 fi
 
+# Ask whether to import dummy data if available
+if [ -f "dummy.sql" ]; then
+    read -p "Do you want to import dummy data from dummy.sql? (y/n, default: n): " import_dummy
+    import_dummy=${import_dummy:-n}
+    if [[ "$import_dummy" == "y" ]]; then
+        echo "Importing dummy data from dummy.sql..."
+        mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < dummy.sql
+    else
+        echo "Skipping dummy data import."
+    fi
+fi
+
 # Create or override default admin account
 DEFAULT_USERNAME="admin"
 DEFAULT_PASSWORD="admin"  # Default password; must be changed immediately after first login
