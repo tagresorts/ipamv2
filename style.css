@@ -64,7 +64,7 @@ body::after {
 .navbar {
   background-color: #001f3f;
   width: 100%;
-  padding: 10px 0;
+  /* Removed extra padding to rely on container adjustments */
   margin-bottom: 20px; /* Gap between nav and filter */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   color: #fff;
@@ -75,21 +75,22 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 5px; /* Reduced left/right padding */
 }
-.logo h2 {
-  margin: 0;
-  font-size: 24px;
+.logo {
+  margin-left: 5px; /* Small left margin */
 }
-.user-info p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
+.logo img {
+  display: block;
 }
 .nav-links {
-  display: flex;
-  gap: 10px;
+  margin-right: 5px; /* Small right margin */
 }
+.nav-links a {
+  margin-left: 5px;
+}
+
+/* Navigation Buttons */
 .nav-btn {
   text-decoration: none;
   background: #001f3f;
@@ -210,8 +211,8 @@ input, select {
 
 /* Style for the "IP Address List" heading */
 .ip-list-title {
-  color: #000;           /* Black font */
-  font-size: 14px;        /* Match query result text size */
+  color: #000;
+  font-size: 14px;
   font-weight: 400;
   margin-bottom: 15px;
   padding: 10px 0;
@@ -230,6 +231,9 @@ input, select {
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.4);
 }
+.modal.show {
+  display: block;
+}
 .modal-content {
   background-color: #fefefe;
   margin: 10% auto;
@@ -247,7 +251,7 @@ input, select {
 }
 .close:hover,
 .close:focus {
-  color: black;
+  color: #000;
 }
 
 /* Print-Only Header */
@@ -285,10 +289,12 @@ input, select {
   .navbar-container {
     flex-direction: column;
     text-align: center;
+    padding: 0 5px;
   }
   .nav-links {
     flex-direction: column;
     margin-top: 10px;
+    margin-right: 0;
   }
   .nav-btn, .logout-btn {
     width: 100%;
@@ -310,7 +316,7 @@ input, select {
 
 /* Adjust container-content margin so content isn't hidden behind filter bar */
 .container-content {
-  margin-bottom: 0; /* Set to 0 if you want the filter bar flush, or adjust as needed */
+  margin-bottom: 0;
 }
 
 /* Card container for the IP Address List */
@@ -331,8 +337,8 @@ table tr:hover {
 /* Filter Form adjustments */
 .filter-form input[type="text"],
 .filter-form select {
-  width: 100px;   /* Reduced width from 130px */
-  padding: 3px 5px;  /* Smaller padding */
+  width: 100px;
+  padding: 3px 5px;
   border: none;
   border-radius: 4px;
   color: #000;
@@ -359,28 +365,30 @@ table tr:hover {
   align-items: center;
   gap: 8px;
 }
-/* Apply an embossed effect to all buttons */
+
+/* Embossed Button Effect */
 .nav-btn,
 button.nav-btn,
 .logout-btn,
 .login-button {
-  background-color: #0056b3;           /* Embossed blue background */
+  background-color: #0056b3;
   color: #fff;
   padding: 8px 15px;
   border-radius: 4px;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s;
-  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.2); /* Inset shadow for embossed look */
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.2);
 }
 
 .nav-btn:hover,
 button.nav-btn:hover,
 .logout-btn:hover,
 .login-button:hover {
-  background-color: #003f8f;           /* Darker on hover */
+  background-color: #003f8f;
   box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.2);
 }
+
 /* Card header for the IP Address List */
 .card-header {
   display: flex;
