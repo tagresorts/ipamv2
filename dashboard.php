@@ -8,6 +8,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+$userRole = $_SESSION['role'];
+
 /*********************************************************
  * Multi‑Tenancy: Fetch company IDs associated with the logged‑in user
  *********************************************************/
@@ -87,28 +89,14 @@ $ips = $stmt->fetchAll();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
-  <!-- Custom Stylesheet -->
+  <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Navbar adjustments */
-    .navbar-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 10px;
-    }
-    .logo {
-      margin-left: 10px;
-    }
-    .nav-links {
-      margin-right: 10px;
-    }
-    /* Draggable columns */
+    /* Minimal inline styles for draggable columns and modal */
     th {
       cursor: move;
       user-select: none;
     }
-    /* Inline Modal Styles for Column Toggle */
     .modal {
       display: none;
       position: fixed;
@@ -143,7 +131,6 @@ $ips = $stmt->fetchAll();
     .close:focus {
       color: #000;
     }
-    /* Grid layout for toggle checkboxes */
     .toggle-container {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -176,9 +163,11 @@ $ips = $stmt->fetchAll();
       </div>
       <div class="nav-links">
         <a href="dashboard.php" class="nav-btn">🏠 Home</a>
-        <a href="manage_ip.php?action=list" class="nav-btn">➕ Manage IP</a>
-        <a href="manage_subnets.php?action=list" class="nav-btn">🌐 Manage Subnets</a>
-        <?php if($_SESSION['role'] === 'admin'): ?>
+        <?php if ($userRole !== 'guest'): ?>
+          <a href="manage_ip.php?action=list" class="nav-btn">➕ Manage IP</a>
+          <a href="manage_subnets.php?action=list" class="nav-btn">🌐 Manage Subnets</a>
+        <?php endif; ?>
+        <?php if ($userRole === 'admin'): ?>
           <a href="admin_users.php" class="nav-btn">👥 Manage Users</a>
           <a href="manage_companies.php" class="nav-btn">🏢 Manage Companies</a>
         <?php endif; ?>
@@ -205,11 +194,15 @@ $ips = $stmt->fetchAll();
         <a href="dashboard.php" class="nav-btn">Reset</a>
       </form>
       <div class="filter-actions">
-        <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
+        <?php if ($userRole !== 'guest'): ?>
+          <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
+        <?php endif; ?>
         <a href="export_ips.php?search=<?= urlencode($search) ?>&status=<?= urlencode($status) ?>" class="nav-btn">📊 Export</a>
         <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
         <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
-        <a href="scheduler_manager.php" class="nav-btn">🗄 Backup Scheduler</a>
+        <?php if ($userRole !== 'guest'): ?>
+          <a href="scheduler_manager.php" class="nav-btn">🗄 Cron</a>
+        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -217,7 +210,7 @@ $ips = $stmt->fetchAll();
   <!-- Print-Only Header -->
   <div class="print-header no-print">
     <h1>IP Management System</h1>
-    <p>Printed by: <?= htmlspecialchars(($_SESSION['first_name'] ?? $_SESSION['username']) . " - " . $_SESSION['role']) ?></p>
+    <p>Printed by: <?= htmlspecialchars((!empty($_SESSION['first_name']) ? $_SESSION['first_name'] : $_SESSION['username']) . " - " . $_SESSION['role']) ?></p>
   </div>
 
   <!-- Main Content Container -->
@@ -225,7 +218,7 @@ $ips = $stmt->fetchAll();
     <div class="card">
       <div class="card-header">
         <h3 class="ip-list-title">📋 IP Address List</h3>
-        <div class="current-user"><?= htmlspecialchars(($_SESSION['first_name'] ?? $_SESSION['username']) . " - " . $_SESSION['role']) ?></div>
+        <div class="current-user"><?= htmlspecialchars((!empty($_SESSION['first_name']) ? $_SESSION['first_name'] : $_SESSION['username']) . " - " . $_SESSION['role']) ?></div>
       </div>
       <?php if(count($ips) > 0): ?>
       <table id="ipTable">
@@ -242,7 +235,9 @@ $ips = $stmt->fetchAll();
           <th>Created At</th>
           <th>Last Updated</th>
           <th>Created by</th>
-          <th>Actions</th>
+          <?php if ($userRole !== 'guest'): ?>
+            <th>Actions</th>
+          <?php endif; ?>
         </tr>
         <?php foreach($ips as $ip): ?>
         <tr>
@@ -258,15 +253,17 @@ $ips = $stmt->fetchAll();
           <td><?= htmlspecialchars($ip['created_at']) ?></td>
           <td><?= htmlspecialchars($ip['last_updated']) ?></td>
           <td><?= htmlspecialchars($ip['created_by_username']) ?></td>
+          <?php if ($userRole !== 'guest'): ?>
           <td>
             <a href="manage_ip.php?action=edit&id=<?= $ip['id'] ?>" class="btn">Edit</a>
             <a href="manage_ip.php?action=delete&id=<?= $ip['id'] ?>" class="btn" onclick="return confirm('Are you sure you want to delete this IP?');">Delete</a>
           </td>
+          <?php endif; ?>
         </tr>
         <?php endforeach; ?>
       </table>
       <?php else: ?>
-      <p>No IP addresses found. <a href="manage_ip.php?action=add">Add your first IP</a></p>
+      <p>No IP addresses found. <?php if ($userRole !== 'guest'): ?><a href="manage_ip.php?action=add">Add your first IP</a><?php endif; ?></p>
       <?php endif; ?>
     </div>
   </div>
