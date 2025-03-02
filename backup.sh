@@ -1,22 +1,28 @@
 #!/bin/bash
 # backup.sh
-# This script creates a backup of the IPAM database using credentials stored in config.php.
+# This script creates a backup of the IPAM database using credentials stored in .env.
 # The backup is saved in the "backup" folder in the project root.
 # It retains only the last 5 backup files.
 
-CONFIG_FILE="config.php"
+ENV_FILE=".env"
 
-# Check if config.php exists
-if [ ! -f "$CONFIG_FILE" ]; then
-  echo "Error: config.php not found!"
+# Check if .env exists
+if [ ! -f "$ENV_FILE" ]; then
+  echo "Error: .env file not found!"
   exit 1
 fi
 
-# Extract credentials from config.php using grep and cut
-DB_HOST=$(grep "^\$db_host" "$CONFIG_FILE" | cut -d"'" -f2)
-DB_NAME=$(grep "^\$db_name" "$CONFIG_FILE" | cut -d"'" -f2)
-DB_USER=$(grep "^\$db_user" "$CONFIG_FILE" | cut -d"'" -f2)
-DB_PASS=$(grep "^\$db_pass" "$CONFIG_FILE" | cut -d"'" -f2)
+# Extract credentials from .env
+DB_HOST=$(grep "^DB_HOST=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
+DB_NAME=$(grep "^DB_NAME=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
+DB_USER=$(grep "^DB_USER=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
+DB_PASS=$(grep "^DB_PASS=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
+
+# Check if all credentials are extracted
+if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
+  echo "Error: Missing credentials in .env file!"
+  exit 1
+fi
 
 # Set the backup directory inside the project folder
 BACKUP_DIR="./backup"
