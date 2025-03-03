@@ -606,7 +606,7 @@ $ips = $stmt->fetchAll();
   </div>
 
   <!-- External JavaScript -->
-  <script src="column_model.js"></script>
+  <script src="column_modal.js"></script>
   <script>
     // Pass PHP chart data to JavaScript as global variables
     var typeChartData = <?php echo json_encode($typeChartData); ?>;
