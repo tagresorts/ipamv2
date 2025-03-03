@@ -12,3 +12,4 @@
 
 # Allow all directories
 !*/
+*/backup
