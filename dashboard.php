@@ -346,7 +346,6 @@ $ips = $stmt->fetchAll();
     .dashboard-summary { margin: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
     .dashboard-summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .summary-cards { display: flex; justify-content: space-around; margin-bottom: 20px; }
-    /* Updated compact summary card style */
     .summary-card { flex: 1; padding: 5px; margin: 3px; border: 1px solid #ccc; border-radius: 5px; text-align: center; background-color: #fff; font-size: 0.9em; }
     .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .chart-cell { }
@@ -361,7 +360,7 @@ $ips = $stmt->fetchAll();
     <div class="loading-spinner"></div>
   </div>
 
-  <!-- Nav Bar (Original Design with Toggle View Button) -->
+  <!-- Nav Bar (with Toggle View Button) -->
   <div class="navbar">
     <div class="navbar-container">
       <div class="logo">
@@ -382,7 +381,7 @@ $ips = $stmt->fetchAll();
     </div>
   </div>
 
-  <!-- Filter Bar (Using external style.css for styling) -->
+  <!-- Filter Bar -->
   <div class="filter-bar no-print">
     <div class="filter-bar-container">
       <form method="GET" class="filter-form" onsubmit="document.getElementById('loadingOverlay').style.display='block'">
@@ -414,12 +413,11 @@ $ips = $stmt->fetchAll();
     </div>
   </div>
 
-  <!-- Dashboard Summary Section -->
+  <!-- Dashboard Summary (Graphs) -->
   <div id="dashboardGraphs" class="dashboard-summary">
     <div class="dashboard-summary-header">
       <h3>Dashboard Summary</h3>
     </div>
-    <!-- Compact Summary Cards -->
     <div class="summary-cards">
       <div class="summary-card">
         <h4>Total Companies</h4>
@@ -442,7 +440,6 @@ $ips = $stmt->fetchAll();
         <p><?= count($subnetLabels) ?></p>
       </div>
     </div>
-    <!-- Chart Grid (2 Columns) -->
     <div class="chart-grid">
       <div class="chart-cell">
         <canvas id="typeChart" width="<?= $chartDiameter ?>" height="<?= $chartDiameter ?>"></canvas>
@@ -606,7 +603,7 @@ $ips = $stmt->fetchAll();
   </div>
 
   <!-- External JavaScript -->
-  <script src="column_model.js"></script>
+  <script src="column_modal.js"></script>
   <script>
     // Pass PHP chart data to JavaScript as global variables
     var typeChartData = <?php echo json_encode($typeChartData); ?>;
@@ -614,31 +611,6 @@ $ips = $stmt->fetchAll();
     var locationChartData = <?php echo json_encode($locationChartData); ?>;
     var subnetChartData = <?php echo json_encode($subnetChartData); ?>;
   </script>
-  <!-- Include graphs.js which handles all Chart.js initializations -->
   <script src="graphs.js"></script>
-  <script>
-    // Toggle view between graphs and IP list
-    document.addEventListener("DOMContentLoaded", function(){
-      const toggleButton = document.getElementById("toggleViewButton");
-      const graphsSection = document.getElementById("dashboardGraphs");
-      const ipListSection = document.getElementById("ipListSection");
-
-      // Initially, graphs are visible and IP list is hidden
-      graphsSection.style.display = "block";
-      ipListSection.style.display = "none";
-
-      toggleButton.addEventListener("click", function(){
-         if(graphsSection.style.display === "block"){
-            graphsSection.style.display = "none";
-            ipListSection.style.display = "block";
-            toggleButton.textContent = "Show Graphs";
-         } else {
-            graphsSection.style.display = "block";
-            ipListSection.style.display = "none";
-            toggleButton.textContent = "Show IP List";
-         }
-      });
-    });
-  </script>
 </body>
 </html>
