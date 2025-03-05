@@ -13,4 +13,4 @@
 
 # Allow all directories
 !*/
-*/backup
+!backup/
