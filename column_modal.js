@@ -1,6 +1,5 @@
+
 document.addEventListener("DOMContentLoaded", function() {
-<<<<<<< HEAD
-=======
     // --- VIEW TOGGLE LOGIC ---
     const toggleViewButton = document.getElementById("toggleViewButton");
     const graphsSection = document.getElementById("dashboardGraphs");
@@ -21,15 +20,19 @@ document.addEventListener("DOMContentLoaded", function() {
     if (toggleViewButton) {
         toggleViewButton.addEventListener("click", function() {
             if (graphsSection.style.display === "block") {
+                // Switching from Graphs view to IP List view (no reload needed)
                 graphsSection.style.display = "none";
                 ipListSection.style.display = "block";
                 toggleViewButton.textContent = "Show Graphs";
                 localStorage.setItem("currentView", "ip");
             } else {
-                graphsSection.style.display = "block";
-                ipListSection.style.display = "none";
-                toggleViewButton.textContent = "Show IP List";
+                // Switching from IP List view to Graphs view: force full page reload
                 localStorage.setItem("currentView", "graphs");
+                // Append a timestamp to force a fresh reload
+                const currentUrl = window.location.href.split('?')[0];
+                const params = new URLSearchParams(window.location.search);
+                params.set('t', new Date().getTime());
+                window.location.href = currentUrl + '?' + params.toString();
             }
         });
     }
@@ -44,31 +47,25 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // --- COLUMN MODAL & TABLE COLUMN TOGGLING ---
->>>>>>> fix-pagination-graph-display
     const modal = document.getElementById("toggleColumnsModal");
     const toggleBtn = document.getElementById("toggleColumnsBtn");
     const closeBtn = document.getElementById("toggleClose");
     const table = document.getElementById("ipTable");
 
-    // Modal handling
-<<<<<<< HEAD
-    toggleBtn.addEventListener("click", () => modal.classList.add("show"));
-    closeBtn.addEventListener("click", () => modal.classList.remove("show"));
-=======
+    // Modal handling with safe checks.
     if (toggleBtn) {
         toggleBtn.addEventListener("click", () => modal.classList.add("show"));
     }
     if (closeBtn) {
         closeBtn.addEventListener("click", () => modal.classList.remove("show"));
     }
->>>>>>> fix-pagination-graph-display
     window.addEventListener("click", (e) => {
         if (e.target === modal) {
             modal.classList.remove("show");
         }
     });
 
-    // Column toggling
+    // Column toggling: Restore saved visibility and update on change.
     document.querySelectorAll('.toggle-container input').forEach(checkbox => {
         const colIndex = parseInt(checkbox.dataset.col);
         checkbox.checked = localStorage.getItem(`col${colIndex}`) !== 'hidden';
@@ -78,47 +75,43 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-<<<<<<< HEAD
-    // Save/Restore functionality
-    document.getElementById('saveBtn').addEventListener('click', () => location.reload());
-    document.getElementById('restoreBtn').addEventListener('click', () => {
-        localStorage.clear();
-        location.reload();
-    });
-=======
     // Save/Restore functionality – force view state to "ip" so that reloads remain on the IP list.
-    if (document.getElementById('saveBtn')) {
-        document.getElementById('saveBtn').addEventListener('click', () => {
+    const saveBtn = document.getElementById('saveBtn');
+    const restoreBtn = document.getElementById('restoreBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
             localStorage.setItem("currentView", "ip");
-            location.reload();
+            const currentUrl = window.location.href.split('?')[0];
+            const params = new URLSearchParams(window.location.search);
+            params.set('t', new Date().getTime());
+            window.location.href = currentUrl + '?' + params.toString();
         });
     }
-    if (document.getElementById('restoreBtn')) {
-        document.getElementById('restoreBtn').addEventListener('click', () => {
+    if (restoreBtn) {
+        restoreBtn.addEventListener('click', () => {
             localStorage.clear();
             localStorage.setItem("currentView", "ip");
-            location.reload();
+            const currentUrl = window.location.href.split('?')[0];
+            const params = new URLSearchParams(window.location.search);
+            params.set('t', new Date().getTime());
+            window.location.href = currentUrl + '?' + params.toString();
         });
     }
->>>>>>> fix-pagination-graph-display
 
+    // Helper function to toggle column visibility.
     function toggleColumn(index, show) {
         table.querySelectorAll(`tr > :nth-child(${index + 1})`).forEach(cell => {
             cell.style.display = show ? '' : 'none';
         });
     }
 
-<<<<<<< HEAD
-    // Initialize column visibility
-=======
-    // Initialize column visibility on page load
->>>>>>> fix-pagination-graph-display
+    // Initialize column visibility on page load.
     document.querySelectorAll('.toggle-container input').forEach(checkbox => {
         const colIndex = parseInt(checkbox.dataset.col);
         toggleColumn(colIndex, checkbox.checked);
     });
 
-    // Draggable columns
+    // Draggable columns implementation.
     let dragged;
     document.querySelectorAll('th').forEach(header => {
         header.draggable = true;
@@ -137,21 +130,11 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     });
-<<<<<<< HEAD
-});
-
-// Loading overlay handling
-document.querySelector('.filter-form').addEventListener('submit', function() {
-    document.getElementById('loadingOverlay').style.display = 'block';
-});
-
-window.addEventListener('load', function() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-=======
 
     // Loading overlay handling for filter form submission.
-    if (document.querySelector('.filter-form')) {
-        document.querySelector('.filter-form').addEventListener('submit', function() {
+    const filterForm = document.querySelector('.filter-form');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function() {
             localStorage.setItem("currentView", "ip");
             document.getElementById('loadingOverlay').style.display = 'block';
         });
@@ -160,5 +143,4 @@ window.addEventListener('load', function() {
     window.addEventListener('load', function() {
         document.getElementById('loadingOverlay').style.display = 'none';
     });
->>>>>>> fix-pagination-graph-display
 });

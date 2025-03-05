@@ -60,7 +60,7 @@ CREATE TABLE `custom_fields` (
   PRIMARY KEY (`id`),
   KEY `ip_id` (`ip_id`),
   CONSTRAINT `custom_fields_ibfk_1` FOREIGN KEY (`ip_id`) REFERENCES `ips` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -69,6 +69,7 @@ CREATE TABLE `custom_fields` (
 
 LOCK TABLES `custom_fields` WRITE;
 /*!40000 ALTER TABLE `custom_fields` DISABLE KEYS */;
+INSERT INTO `custom_fields` VALUES (3,5,'DNS','DNS');
 /*!40000 ALTER TABLE `custom_fields` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -164,7 +165,7 @@ CREATE TABLE `ips` (
   KEY `fk_ips_company` (`company_id`),
   CONSTRAINT `fk_ips_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`company_id`) ON DELETE CASCADE,
   CONSTRAINT `ips_ibfk_1` FOREIGN KEY (`subnet_id`) REFERENCES `subnets` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -173,7 +174,7 @@ CREATE TABLE `ips` (
 
 LOCK TABLES `ips` WRITE;
 /*!40000 ALTER TABLE `ips` DISABLE KEYS */;
-INSERT INTO `ips` VALUES (5,'172.16.0.1',3,'Assigned','Sonicwall Firewall','Coron IT','Tagresorts',6,NULL,'2025-02-24 13:24:07','2025-02-25 10:27:16','Firewall','Data Center',1),(6,'192.168.88.10',4,'Assigned','Sonicwall Firewall','BSI IT','BSI',6,NULL,'2025-02-24 14:14:30','2025-02-25 10:06:42','Firewall','Data Center',2);
+INSERT INTO `ips` VALUES (5,'172.16.0.1',3,'Assigned','Sonicwall Firewall','Coron IT','Tagresorts',6,NULL,'2025-02-24 13:24:07','2025-02-27 09:06:44','Firewall','Tag - Data Center',1),(6,'192.168.88.10',4,'Assigned','Sonicwall Firewall','BSI IT','BSI',6,NULL,'2025-02-24 14:14:30','2025-03-05 05:19:38','Firewall','BSI - 1103',2),(7,'172.16.0.5',3,'Assigned','IDF1-Switch','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(8,'172.16.0.10',3,'Assigned','IDF1-Switch2','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(9,'172.16.0.6',3,'Assigned','IDF2-Distri-Switch','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(10,'172.16.0.7',3,'Assigned','IDF3-Distri-Switch','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(11,'172.16.0.8',3,'Assigned','IDF4-Switch','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(12,'172.16.0.13',3,'Assigned','IDF4-Switch2','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(13,'172.16.0.9',3,'Assigned','IDF5-Switch','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(14,'172.16.0.3',3,'Assigned','MDF-Switch1','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(15,'172.16.0.4',3,'Assigned','MDF-Switch2','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Switch','Not Specified',1),(16,'172.16.0.81',3,'Assigned','Synology','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','NAS','Not Specified',1),(17,'172.16.0.46',3,'Assigned','OpenVPN Coron','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','VM Instance','Data Center',1),(18,'172.16.0.57',3,'Assigned','OSTicket Server','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','VM Instance','Data Center',1),(19,'172.16.0.49',3,'Assigned','SnipeIT Server','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','VM Instance','Data Center',1),(20,'172.16.0.48',3,'Assigned','Wordpress-Staging','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','VM Instance','Data Center',1),(21,'172.16.0.23',3,'Assigned','CAPS','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','VM Instance','Data Center',1),(22,'172.16.0.25',3,'Assigned','Harle','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','VM Instance','Data Center',1),(23,'172.16.0.22',3,'Assigned','IFC','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 09:10:28','Server','Tag - Data Center',1),(24,'172.16.0.20',3,'Assigned','Operaserver','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 09:09:47','Server','Tag - Data Center',1),(25,'172.16.0.24',3,'Assigned','OXI Server','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 08:18:33','Server','Data Center',1),(26,'172.16.0.21',3,'Assigned','Simphony','Coron IT','Tagresorts Coron',6,NULL,'2025-02-27 08:18:33','2025-02-27 09:06:26','Server','Tag - Data Center',1);
 /*!40000 ALTER TABLE `ips` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -233,7 +234,7 @@ CREATE TABLE `user_companies` (
 
 LOCK TABLES `user_companies` WRITE;
 /*!40000 ALTER TABLE `user_companies` DISABLE KEYS */;
-INSERT INTO `user_companies` VALUES (4,1,'viewer'),(4,2,'viewer'),(4,3,'viewer'),(6,1,'viewer'),(6,2,'viewer'),(6,3,'viewer'),(7,1,'viewer'),(7,2,'viewer');
+INSERT INTO `user_companies` VALUES (4,1,'viewer'),(4,2,'viewer'),(4,3,'viewer'),(6,1,'viewer'),(6,2,'viewer'),(6,3,'viewer'),(7,1,'viewer'),(7,2,'viewer'),(8,1,'viewer'),(8,2,'viewer'),(8,3,'viewer');
 /*!40000 ALTER TABLE `user_companies` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,7 +259,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -267,7 +268,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (4,'admin','support@tagresorts.com.ph','Admin','','User','$2y$10$HY7nX.lgDBPGjxM8pL9Kp.FbFOC2US4HEIG2n.Fa4zmz3tdGH3aFS','admin','2025-02-24 07:42:44',1),(6,'rlopez','ryan.lopez@backofficesolutions.ph','Cristopher Ryan','Pasay','Lopez','$2y$10$EecHVTpmrAobufFgaLzvFee4Xr9n9cJ1PScMMAfr7V4uuteO78kZC','admin','2025-02-24 10:16:50',1),(7,'rmagalona','richard@backofficesolutions.ph','Richard','','Magalona','$2y$10$RHR6Jk2V4gGuQssNWQKJdeSyyRk5Pea/kus4esoouIJL4ec23676K','user','2025-02-25 08:30:14',1);
+INSERT INTO `users` VALUES (4,'admin','support@tagresorts.com.ph','Admin','','User','$2y$10$HY7nX.lgDBPGjxM8pL9Kp.FbFOC2US4HEIG2n.Fa4zmz3tdGH3aFS','admin','2025-02-24 07:42:44',1),(6,'rlopez','ryan.lopez@backofficesolutions.ph','Ryan','Pasay','Lopez','$2y$10$EecHVTpmrAobufFgaLzvFee4Xr9n9cJ1PScMMAfr7V4uuteO78kZC','admin','2025-02-24 10:16:50',1),(7,'rmagalona','richard@backofficesolutions.ph','Richard','','Magalona','$2y$10$HIsDx19A6tnHGH23Y8K7EOoUvUQfDohmSTM9fHcHzxGU8eYXCzsPG','user','2025-02-25 08:30:14',1),(8,'ryan','noname@noname.com','guest','','guest','$2y$10$/AUG.8stLxLhCYbspnzwm.NvZhvoqo38JpTtqwiyjtJp9ZbdSAfNq','guest','2025-02-27 01:30:37',1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -280,4 +281,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-02-26 12:36:42
+-- Dump completed on 2025-03-05 13:46:15
