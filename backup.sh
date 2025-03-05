@@ -8,19 +8,18 @@ ENV_FILE=".env"
 
 # Check if .env exists
 if [ ! -f "$ENV_FILE" ]; then
-  echo "Error: .env file not found!"
+  echo "Error: $ENV_FILE not found!"
   exit 1
 fi
 
-# Extract credentials from .env
-DB_HOST=$(grep "^DB_HOST=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
-DB_NAME=$(grep "^DB_NAME=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
-DB_USER=$(grep "^DB_USER=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
-DB_PASS=$(grep "^DB_PASS=" "$ENV_FILE" | cut -d '=' -f2 | tr -d ' ')
+# Source the .env file to load environment variables
+set -a
+source "$ENV_FILE"
+set +a
 
-# Check if all credentials are extracted
+# Verify that all required variables are set
 if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
-  echo "Error: Missing credentials in .env file!"
+  echo "Error: One or more required database credentials are missing in $ENV_FILE"
   exit 1
 fi
 
