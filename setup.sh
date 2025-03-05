@@ -4,6 +4,7 @@ REPO_URL="https://github.com/tagresorts/ipam"
 BRANCH="main"
 CONFIG_FILE="config.php"
 SCHEMA_FILE="ipam-schema.sql"  # Fixed schema file
+ENV_FILE=".env"
 
 echo "Starting IPAM setup..."
 
@@ -103,4 +104,13 @@ try {
 ?>
 EOL
 
-echo "Database setup complete! config.php has been updated."
+# Create .env file with database credentials based on user's input
+echo "Creating .env file with database credentials..."
+cat > "$ENV_FILE" <<EOL
+DB_HOST=$DB_HOST
+DB_NAME=$DB_NAME
+DB_USER=$DB_USER
+DB_PASS=$DB_PASS
+EOL
+
+echo "Database setup complete! Both config.php and .env have been updated."

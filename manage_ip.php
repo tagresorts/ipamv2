@@ -254,7 +254,8 @@ if ($action === 'list') {
     <a href="dashboard.php" class="nav-btn">← Back to Dashboard</a>
     <a href="manage_ip.php?action=list" class="nav-btn">IP List</a>
     <a href="manage_ip.php?action=add" class="nav-btn">Add New IP</a>
-  </div>
+    <a href="manage_json.php" class="nav-btn">Hardware/Location</a> 
+</div>
   <div class="container">
     <?php if ($error): ?>
       <div class="alert error"><?= htmlspecialchars($error) ?></div>

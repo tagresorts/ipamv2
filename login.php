@@ -23,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $user['username'];
+            // Set first_name for multi-tenancy display
+            $_SESSION['first_name'] = $user['first_name'];
             header("Location: dashboard.php");
             exit;
         } else {
@@ -66,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Logo below the form -->
         <div class="logo-container" style="text-align: center; margin-top: 20px;">
-            <img src="ryan_logo.png" alt="Ryan's IPAM Logo" style="width: 225px; height: auto;"> <!-- 50% larger -->
+            <img src="ryan_logo.png" alt="Ryan's IPAM Logo" style="width: 225px; height: auto;">
         </div>
     </div>
 

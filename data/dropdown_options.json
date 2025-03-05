@@ -5,13 +5,16 @@
         "Switch",
         "Firewall",
         "Workstation",
-        "Other"
+        "NAS"
     ],
-    "locations": [
-        "Data Center",
-        "Buntag",
-        "Tanghalan",
-        "Taza",
-        "Talakayan"
-    ]
+    "locations": {
+        "0": "Tag - Data Center",
+        "1": "Tag - Buntag",
+        "2": "Tag - Tanghalan",
+        "3": "Tag - Taza",
+        "4": "Tag -Talakayan",
+        "5": "BSI - 1103",
+        "6": "Tag - Seibu",
+        "8": "Via - Amon"
+    }
 }
