@@ -58,7 +58,7 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
 ?>
 <?php include 'header.php'; ?>
 <!-- Dashboard Summary (Graphs) -->
-<div id="dashboardGraphs" class="dashboard-summary">
+<div id="dashboardGraphs" class="dashboard-summary" >
   <div class="dashboard-summary-header">
     <h3>Dashboard Summary</h3>
   </div>

@@ -184,14 +184,14 @@ if (isset($_GET['success'])) {
     input[type="text"], input[type="email"], input[type="password"], select, textarea {
         width: 100%; padding: 8px; box-sizing: border-box;
     }
-    /* Optional: additional styling for nav buttons */
+    /* Optional: additional styling for nav buttons 
     .nav-btn.btn {
       background-color: #0078d7;
       color: #fff;
       padding: 8px 12px;
       border-radius: 4px;
       text-decoration: none;
-      margin-left: 10px;
+      margin-left: 10px; */
     }
   </style>
 </head>

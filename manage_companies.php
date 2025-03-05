@@ -87,7 +87,7 @@ $companies = $pdo->query("SELECT * FROM companies ORDER BY company_name ASC")->f
             padding: 8px;
             text-align: left;
         }
-        /* Button styling */
+        /* Button styling 
         .btn {
             padding: 6px 12px;
             background-color: #007BFF;
@@ -121,7 +121,7 @@ $companies = $pdo->query("SELECT * FROM companies ORDER BY company_name ASC")->f
             margin-bottom: 15px;
             border-radius: 4px;
         }
-        .alert.error { background-color: #f8d7da; color: #721c24; }
+        .alert.error { background-color: #f8d7da; color: #721c24; } */
     </style>
 </head>
 <body>
