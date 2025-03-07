@@ -86,23 +86,8 @@ DEFAULT_HASH=$(php -r "echo password_hash('$DEFAULT_PASSWORD', PASSWORD_DEFAULT)
 mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "INSERT INTO users (username, password_hash, role, first_name, last_name) VALUES ('$DEFAULT_USERNAME', '$DEFAULT_HASH', 'admin', 'Admin', 'User') ON DUPLICATE KEY UPDATE password_hash='$DEFAULT_HASH', role='admin', first_name='Admin', last_name='User';"
 echo "Default admin account created/overridden with username 'admin' and password 'admin'. Please change the password immediately upon first login."
 
-# Update config.php with new database details
-echo "Updating $CONFIG_FILE with new database credentials..."
-cat > "$CONFIG_FILE" <<EOL
-<?php
-\$db_host = '$DB_HOST';
-\$db_name = '$DB_NAME';
-\$db_user = '$DB_USER';
-\$db_pass = '$DB_PASS';
-
-try {
-  \$pdo = new PDO("mysql:host=\$db_host;dbname=\$db_name", \$db_user, \$db_pass);
-  \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException \$e) {
-  die("Database connection failed: " . \$e->getMessage());
-}
-?>
-EOL
+# Option 1: Do NOT update config.php since it already contains secure loadEnv() logic
+echo "Note: $CONFIG_FILE already contains secure loadEnv() logic. Skipping update of $CONFIG_FILE."
 
 # Create .env file with database credentials based on user's input
 echo "Creating .env file with database credentials..."
@@ -113,4 +98,4 @@ DB_USER=$DB_USER
 DB_PASS=$DB_PASS
 EOL
 
-echo "Database setup complete! Both config.php and .env have been updated."
+echo "Database setup complete! The .env file has been updated, and $CONFIG_FILE will load these credentials securely."
