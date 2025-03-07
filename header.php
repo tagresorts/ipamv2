@@ -55,7 +55,7 @@
     .dashboard-summary { margin: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
     .dashboard-summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .summary-cards { display: flex; justify-content: space-around; margin-bottom: 20px; }
-    .summary-card { flex: 1; padding: 5px; margin: 3px; border: 1px solid #ccc; border-radius: 5px; text-align: center; background-color: #fff; font-size: 0.9em; }
+    .summary-card { flex: 1; padding: 0px; margin: 3px; border: 1px solid #ccc; border-radius: 5px; text-align: center; background-color: #fff; font-size: 0.9em; }
     .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .chart-cell { }
     .chart-cell canvas { display: block; margin: auto; }
