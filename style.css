@@ -157,11 +157,11 @@ th {
 
 /* Forms */
 form div, .form-group {
-  margin: 15px 0;
+  margin: 5px 0;
   font-size: 14px;
 }
 input, select {
-  padding: 10px;
+  padding: 5px;
   width: 100%;
   max-width: 400px;
   border: 1px solid #ccc;
