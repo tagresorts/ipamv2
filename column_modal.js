@@ -1,12 +1,13 @@
-
 document.addEventListener("DOMContentLoaded", function() {
     // --- VIEW TOGGLE LOGIC ---
     const toggleViewButton = document.getElementById("toggleViewButton");
     const graphsSection = document.getElementById("dashboardGraphs");
     const ipListSection = document.getElementById("ipListSection");
 
-    // Check localStorage for current view; default to graphs.
-    const currentView = localStorage.getItem("currentView") || "graphs";
+    // Use a variable to track the current view, defaulting to "graphs"
+    let currentView = localStorage.getItem("currentView") || "graphs";
+
+    // Set initial state based on currentView
     if (currentView === "ip") {
         if (graphsSection) graphsSection.style.display = "none";
         if (ipListSection) ipListSection.style.display = "block";
@@ -19,28 +20,33 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (toggleViewButton) {
         toggleViewButton.addEventListener("click", function() {
-            if (graphsSection.style.display === "block") {
-                // Switching from Graphs view to IP List view (no reload needed)
-                graphsSection.style.display = "none";
-                ipListSection.style.display = "block";
+            console.log("Current view before toggle:", currentView); // Debug log
+            if (currentView === "graphs") {
+                // Toggle to IP List view
+                if (graphsSection) graphsSection.style.display = "none";
+                if (ipListSection) ipListSection.style.display = "block";
                 toggleViewButton.textContent = "Show Graphs";
-                localStorage.setItem("currentView", "ip");
+                currentView = "ip";
+                localStorage.setItem("currentView", currentView);
             } else {
-                // Switching from IP List view to Graphs view: force full page reload
-                localStorage.setItem("currentView", "graphs");
-                // Append a timestamp to force a fresh reload
-                const currentUrl = window.location.href.split('?')[0];
-                const params = new URLSearchParams(window.location.search);
-                params.set('t', new Date().getTime());
-                window.location.href = currentUrl + '?' + params.toString();
+                // Toggle to Graphs view and refresh page after 1 second
+                if (ipListSection) ipListSection.style.display = "none";
+                if (graphsSection) graphsSection.style.display = "block";
+                toggleViewButton.textContent = "Show IP List";
+                currentView = "graphs";
+                localStorage.setItem("currentView", currentView);
+                setTimeout(function() {
+                    window.location.reload();
+                }, 100);
             }
+            console.log("Current view after toggle:", currentView); // Debug log
         });
     }
 
-    // Attach event listeners to pagination links to preserve the IP view.
+    // Preserve view state on pagination links.
     document.querySelectorAll('.pagination a').forEach(link => {
         link.addEventListener('click', function() {
-            if (localStorage.getItem("currentView") === "ip") {
+            if (currentView === "ip") {
                 localStorage.setItem("currentView", "ip");
             }
         });
@@ -52,7 +58,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const closeBtn = document.getElementById("toggleClose");
     const table = document.getElementById("ipTable");
 
-    // Modal handling with safe checks.
     if (toggleBtn) {
         toggleBtn.addEventListener("click", () => modal.classList.add("show"));
     }
@@ -65,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Column toggling: Restore saved visibility and update on change.
+    // Column toggling: restore saved visibility and update on change.
     document.querySelectorAll('.toggle-container input').forEach(checkbox => {
         const colIndex = parseInt(checkbox.dataset.col);
         checkbox.checked = localStorage.getItem(`col${colIndex}`) !== 'hidden';
@@ -75,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Save/Restore functionality – force view state to "ip" so that reloads remain on the IP list.
+    // Save/Restore functionality – force IP view state so reloads remain on the IP list.
     const saveBtn = document.getElementById('saveBtn');
     const restoreBtn = document.getElementById('restoreBtn');
     if (saveBtn) {
@@ -109,26 +114,6 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('.toggle-container input').forEach(checkbox => {
         const colIndex = parseInt(checkbox.dataset.col);
         toggleColumn(colIndex, checkbox.checked);
-    });
-
-    // Draggable columns implementation.
-    let dragged;
-    document.querySelectorAll('th').forEach(header => {
-        header.draggable = true;
-        header.addEventListener('dragstart', e => dragged = e.target);
-        header.addEventListener('dragover', e => e.preventDefault());
-        header.addEventListener('drop', e => {
-            e.preventDefault();
-            if (dragged !== e.target) {
-                const rows = table.rows;
-                Array.from(rows).forEach(row => {
-                    const cells = row.cells;
-                    const indexFrom = Array.from(cells).indexOf(dragged);
-                    const indexTo = Array.from(cells).indexOf(e.target);
-                    row.insertBefore(cells[indexFrom], cells[indexTo]);
-                });
-            }
-        });
     });
 
     // Loading overlay handling for filter form submission.
