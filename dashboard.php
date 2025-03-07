@@ -1,4 +1,5 @@
 <?php
+// dashboard.php
 session_start();
 include 'config.php';
 include 'helpers.php';
@@ -53,12 +54,33 @@ $subnetChartData['datasets'][0]['label'] = 'IP Distribution by Subnet';
 
 // Get current page for IP list
 $page = max(1, intval($_GET['page'] ?? 1));
-$allowedSortColumns = ['ip_address', 'status', 'assigned_to', 'owner', 'created_at', 'last_updated'];
+
+// Updated allowed sort columns including custom fields and extra columns
+$allowedSortColumns = [
+    'ip_address',
+    'subnet',
+    'status',
+    'assigned_to',
+    'owner',
+    'description',
+    'type',
+    'location',
+    'company_name',
+    'custom_fields',
+    'created_at',
+    'last_updated'
+];
+
+// IMPORTANT: Ensure your getIPList() function is updated to join the custom_fields table and aggregate its data.
+// For example, inside getIPList() use a query like:
+// SELECT ips.*, GROUP_CONCAT(CONCAT(custom_fields.field_name, ': ', custom_fields.field_value) SEPARATOR ', ') AS custom_fields
+// FROM ips LEFT JOIN custom_fields ON ips.id = custom_fields.ip_id ... GROUP BY ips.id ...
 list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $params, $allowedSortColumns, 'ip_address', 10, $page);
 ?>
 <?php include 'header.php'; ?>
+
 <!-- Dashboard Summary (Graphs) -->
-<div id="dashboardGraphs" class="dashboard-summary" >
+<div id="dashboardGraphs" class="dashboard-summary">
   <div class="dashboard-summary-header">
     <h3>Dashboard Summary</h3>
   </div>
@@ -99,6 +121,7 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
     </div>
   </div>
 </div>
+
 <!-- IP List Section -->
 <div id="ipListSection" class="container-content" style="display:none;">
   <div class="card">
@@ -110,8 +133,10 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
     </div>
     <?php if(count($ips) > 0): ?>
     <table id="ipTable">
+      <thead>
       <tr>
         <?php
+        // Define headers with keys (these keys will be used as data attributes)
         $headers = [
           'ip_address'          => 'IP Address',
           'subnet'              => 'Subnet',
@@ -122,20 +147,21 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
           'type'                => 'Type',
           'location'            => 'Location',
           'company_name'        => 'Company',
+          'custom_fields'       => 'Custom Fields',
           'created_at'          => 'Created At',
           'last_updated'        => 'Last Updated',
           'created_by_username' => 'Created by'
         ];
         foreach ($headers as $column => $text): ?>
-          <th>
+          <th data-col="<?= $column ?>">
             <?php if (in_array($column, $allowedSortColumns)): ?>
               <a href="?<?= http_build_query(array_merge($_GET, [
                 'sort' => $column,
                 'direction' => (($_GET['sort'] ?? '') === $column && ($_GET['direction'] ?? '') === 'ASC') ? 'DESC' : 'ASC'
               ])) ?>">
                 <?= $text ?>
-                <?php if (($sort === $column)): ?>
-                  <?= $direction === 'ASC' ? '↑' : '↓' ?>
+                <?php if ((isset($sort) && $sort === $column)): ?>
+                  <?= (isset($direction) && $direction === 'ASC') ? '↑' : '↓' ?>
                 <?php endif; ?>
               </a>
             <?php else: ?>
@@ -144,35 +170,39 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
           </th>
         <?php endforeach; ?>
         <?php if ($userRole !== 'guest'): ?>
-          <th>Actions</th>
+          <th data-col="actions">Actions</th>
         <?php endif; ?>
       </tr>
+      </thead>
+      <tbody>
       <?php foreach($ips as $ip): ?>
       <tr>
-        <td><?= htmlspecialchars($ip['ip_address']) ?></td>
-        <td><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
-        <td>
+        <td data-col="ip_address"><?= htmlspecialchars($ip['ip_address']) ?></td>
+        <td data-col="subnet"><?= htmlspecialchars($ip['subnet'] ?? 'N/A') ?></td>
+        <td data-col="status">
           <span class="status-badge status-<?= strtolower($ip['status']) ?>">
             <?= htmlspecialchars($ip['status']) ?>
           </span>
         </td>
-        <td><?= htmlspecialchars($ip['assigned_to']) ?></td>
-        <td><?= htmlspecialchars($ip['owner']) ?></td>
-        <td><?= htmlspecialchars($ip['description']) ?></td>
-        <td><?= htmlspecialchars($ip['type']) ?></td>
-        <td><?= htmlspecialchars($ip['location']) ?></td>
-        <td><?= htmlspecialchars($ip['company_name'] ?? 'N/A') ?></td>
-        <td><?= htmlspecialchars($ip['created_at']) ?></td>
-        <td><?= htmlspecialchars($ip['last_updated']) ?></td>
-        <td><?= htmlspecialchars($ip['created_by_username']) ?></td>
+        <td data-col="assigned_to"><?= htmlspecialchars($ip['assigned_to']) ?></td>
+        <td data-col="owner"><?= htmlspecialchars($ip['owner']) ?></td>
+        <td data-col="description"><?= htmlspecialchars($ip['description']) ?></td>
+        <td data-col="type"><?= htmlspecialchars($ip['type']) ?></td>
+        <td data-col="location"><?= htmlspecialchars($ip['location']) ?></td>
+        <td data-col="company_name"><?= htmlspecialchars($ip['company_name'] ?? 'N/A') ?></td>
+        <td data-col="custom_fields"><?= htmlspecialchars($ip['custom_fields'] ?? 'N/A') ?></td>
+        <td data-col="created_at"><?= htmlspecialchars($ip['created_at']) ?></td>
+        <td data-col="last_updated"><?= htmlspecialchars($ip['last_updated']) ?></td>
+        <td data-col="created_by_username"><?= htmlspecialchars($ip['created_by_username']) ?></td>
         <?php if ($userRole !== 'guest'): ?>
-        <td>
+        <td data-col="actions">
           <a href="manage_ip.php?action=edit&id=<?= $ip['id'] ?>" class="nav-btn">Edit</a>
           <a href="manage_ip.php?action=delete&id=<?= $ip['id'] ?>" class="nav-btn" onclick="return confirm('Are you sure you want to delete this IP?');">Delete</a>
         </td>
         <?php endif; ?>
       </tr>
       <?php endforeach; ?>
+      </tbody>
     </table>
     <div class="pagination">
       <?php if ($page > 1): ?>
@@ -188,6 +218,7 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
     <?php endif; ?>
   </div>
 </div>
+
 <!-- Column Toggle Modal -->
 <div id="toggleColumnsModal" class="modal">
   <div class="modal-content">
@@ -222,17 +253,20 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
         <label><input type="checkbox" data-col="8" checked> Company</label>
       </div>
       <div class="toggle-item">
-        <label><input type="checkbox" data-col="9"> Created At</label>
+        <label><input type="checkbox" data-col="9" checked> Custom Fields</label>
       </div>
       <div class="toggle-item">
-        <label><input type="checkbox" data-col="10"> Last Updated</label>
+        <label><input type="checkbox" data-col="10"> Created At</label>
       </div>
       <div class="toggle-item">
-        <label><input type="checkbox" data-col="11" checked> Created by</label>
+        <label><input type="checkbox" data-col="11"> Last Updated</label>
+      </div>
+      <div class="toggle-item">
+        <label><input type="checkbox" data-col="12" checked> Created by</label>
       </div>
       <?php if ($userRole !== 'guest'): ?>
       <div class="toggle-item">
-        <label><input type="checkbox" data-col="12" checked> Actions</label>
+        <label><input type="checkbox" data-col="13" checked> Actions</label>
       </div>
       <?php endif; ?>
     </div>
@@ -242,4 +276,47 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
     </div>
   </div>
 </div>
+
+<!-- Include jQuery and jQuery UI for column dragging functionality -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
+
+<!-- Column dragging functionality -->
+<script>
+$(document).ready(function(){
+  // Enable column dragging on the table header
+  $("#ipTable thead tr").sortable({
+      items: "th",
+      cursor: 'move',
+      update: function(event, ui) {
+         // Build the new order array based on data-col attribute of each header
+         var newOrder = [];
+         $("#ipTable thead tr th").each(function(){
+             newOrder.push($(this).data("col"));
+         });
+         // For each row in the tbody, reorder the cells to match the new header order
+         $("#ipTable tbody tr").each(function(){
+             var $row = $(this);
+             var cells = [];
+             // For each key in the new order, find the corresponding td
+             newOrder.forEach(function(colKey) {
+                 var cell = $row.find("td[data-col='" + colKey + "']");
+                 if(cell.length){
+                    cells.push(cell);
+                 }
+             });
+             $row.empty();
+             cells.forEach(function(cell){
+                 $row.append(cell);
+             });
+         });
+      }
+  });
+});
+</script>
+
+<!-- Include custom JS for other functionality -->
+<script src="column_modal.js"></script>
+
 <?php include 'footer.php'; ?>

@@ -1,5 +1,5 @@
 <?php
-// header.php
+// header.php - Cleaned version (business logic removed; assumed variables are set in dashboard.php)
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,12 +11,12 @@
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="modal.css">  
-<!-- Chart.js Library -->
+  <link rel="stylesheet" href="modal.css">
+  <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>  
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-piechart-outlabels@1.0.2/dist/chartjs-plugin-piechart-outlabels.min.js"></script>
-<style>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-piechart-outlabels@1.0.2/dist/chartjs-plugin-piechart-outlabels.min.js"></script>
+  <style>
     /* Inline styles from original dashboard.php */
     th {
       cursor: move;
@@ -93,27 +93,29 @@
     <div class="filter-bar-container">
       <form method="GET" class="filter-form" onsubmit="document.getElementById('loadingOverlay').style.display='block'">
         <label for="search">Search:</label>
-        <input type="text" id="search" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="IP, Assigned To, Owner, Description, Location or Type...">
+        <input type="text" id="search" name="search" value="<?= htmlspecialchars($search ?? '') ?>" placeholder="IP, Assigned To, Owner, Description, Location or Type...">
         <label for="company">Company:</label>
         <select name="company" id="company">
           <option value="">-- All Companies --</option>
+          <?php if(isset($userCompanies)): ?>
           <?php foreach ($userCompanies as $company): ?>
-            <option value="<?= $company['company_id'] ?>" <?= ($companyFilter == $company['company_id'] ? 'selected' : '') ?>>
+            <option value="<?= $company['company_id'] ?>" <?= (isset($companyFilter) && $companyFilter == $company['company_id']) ? 'selected' : '' ?>>
               <?= htmlspecialchars($company['company_name']) ?>
             </option>
           <?php endforeach; ?>
+          <?php endif; ?>
         </select>
         <button type="submit" class="nav-btn">Filter</button>
         <a href="dashboard.php" class="nav-btn">Reset</a>
       </form>
       <div class="filter-actions">
-        <?php if ($userRole !== 'guest'): ?>
+        <?php if (isset($userRole) && $userRole !== 'guest'): ?>
           <a href="bulk_upload.php" class="nav-btn">📤 Upload</a>
         <?php endif; ?>
         <a href="export_ips.php?<?= http_build_query($_GET) ?>" class="nav-btn">📊 Export</a>
         <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
         <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
-        <?php if ($userRole !== 'guest'): ?>
+        <?php if (isset($userRole) && $userRole !== 'guest'): ?>
           <a href="scheduler_manager.php" class="nav-btn">🗄 Cron</a>
         <?php endif; ?>
       </div>
