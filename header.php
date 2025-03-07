@@ -77,7 +77,7 @@
       <div class="nav-links">
         <button id="toggleViewButton" class="nav-btn">Show IP List</button>
         <?php if ($userRole !== 'guest'): ?>
-          <a href="manage_ip.php?action=list" class="nav-btn">➕ Manage IP</a>
+          <a href="manage_ip.php?action=add" class="nav-btn">➕ Manage IP</a>
           <a href="manage_subnets.php?action=list" class="nav-btn">🌐 Manage Subnets</a>
         <?php endif; ?>
         <?php if ($userRole === 'admin'): ?>

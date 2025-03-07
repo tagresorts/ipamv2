@@ -27,40 +27,36 @@ if (!isset($data['types']) || !isset($data['locations'])) {
 
 // Process form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Add new entry
+    // Add new entry: add both values side by side even if one is empty
     if (isset($_POST['add'])) {
-        if (!empty($_POST['new_type'])) {
-            $data['types'][] = htmlspecialchars(trim($_POST['new_type']));
-        }
-        if (!empty($_POST['new_location'])) {
-            $data['locations'][] = htmlspecialchars(trim($_POST['new_location']));
-        }
+        $newType = isset($_POST['new_type']) ? htmlspecialchars(trim($_POST['new_type'])) : "";
+        $newLocation = isset($_POST['new_location']) ? htmlspecialchars(trim($_POST['new_location'])) : "";
+        $data['types'][] = $newType;
+        $data['locations'][] = $newLocation;
     }
 
-    // Edit entry
-    if (isset($_POST['edit'])) {
-        $section = $_POST['section'];
-        $oldValue = $_POST['old_value'];
+    // Separate update for individual fields
+    if (isset($_POST['update'])) {
+        $index = $_POST['index'];
+        $field = $_POST['field']; // 'type' or 'location'
         $newValue = htmlspecialchars(trim($_POST['new_value']));
-
-        if (!empty($newValue) && in_array($section, ['types', 'locations'])) {
-            $index = array_search($oldValue, $data[$section]);
-            if ($index !== false) {
-                $data[$section][$index] = $newValue;
-            }
+        if ($field === 'type' && isset($data['types'][$index])) {
+            $data['types'][$index] = $newValue;
+        } elseif ($field === 'location' && isset($data['locations'][$index])) {
+            $data['locations'][$index] = $newValue;
         }
     }
 
-    // Delete entry
+    // Separate delete for individual fields: remove the entry from its list
     if (isset($_POST['delete'])) {
-        $section = $_POST['section'];
-        // Use old_value since that is what the form sends
-        $value = $_POST['old_value'];
-
-        if (in_array($section, ['types', 'locations'])) {
-            $data[$section] = array_filter($data[$section], function($item) use ($value) {
-                return $item !== $value;
-            });
+        $index = $_POST['index'];
+        $field = $_POST['field'];
+        if ($field === 'type' && isset($data['types'][$index])) {
+            unset($data['types'][$index]);
+            $data['types'] = array_values($data['types']);
+        } elseif ($field === 'location' && isset($data['locations'][$index])) {
+            unset($data['locations'][$index]);
+            $data['locations'] = array_values($data['locations']);
         }
     }
 
@@ -69,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $success = "Changes saved successfully!";
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,20 +73,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Custom styles for this page */
         .container { max-width: 800px; margin: 20px auto; padding: 20px; }
-        .section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-        input[type="text"] { padding: 5px; width: 200px; }
+        .section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: var(--card-bg); }
+        input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
         .button { padding: 5px 10px; margin: 0 5px; cursor: pointer; }
         .success { color: green; margin-bottom: 15px; }
+        /* New entry form flex layout */
+        .new-entry-form {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .new-entry-form .field {
+            flex: 1;
+            min-width: 200px;
+        }
+        .new-entry-form .button-container {
+            margin-left: auto;
+        }
+        /* Flex container for the two independent tables */
+        .tables-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .table-wrapper { flex: 1; min-width: 300px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
     </style>
 </head>
 <body>
-    <div class="navbar">
+    <!-- Navigation using the .nav class from style.css -->
+    <div class="nav">
         <div class="navbar-container">
             <div class="nav-links">
                 <a href="dashboard.php" class="nav-btn">← Back to Dashboard</a>
+                <a href="manage_ip.php?action=add" class="nav-btn">Manage IP</a>
             </div>
         </div>
     </div>
@@ -101,72 +115,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="success"><?= $success ?></div>
         <?php endif; ?>
 
-        <!-- Add New Entries Form -->
+        <!-- Add New Entry Form -->
         <div class="section">
             <h2>Add New Entry</h2>
-            <form method="POST">
-                <label>New Type:</label>
-                <input type="text" name="new_type">
-
-                <label>New Location:</label>
-                <input type="text" name="new_location">
-
-                <button type="submit" name="add" class="button">Add Entries</button>
+            <form method="POST" class="new-entry-form">
+                <div class="field">
+                    <label>New Hardware Type:</label>
+                    <input type="text" name="new_type">
+                </div>
+                <div class="field">
+                    <label>New Location:</label>
+                    <input type="text" name="new_location">
+                </div>
+                <div class="button-container">
+                    <button type="submit" name="add" class="button">Add Entry</button>
+                </div>
             </form>
         </div>
 
-        <!-- Edit Types -->
-        <div class="section">
-            <h2>Hardware Types</h2>
-            <table>
-                <tr>
-                    <th>Type</th>
-                    <th>Actions</th>
-                </tr>
-                <?php foreach ($data['types'] as $type): ?>
-                <tr>
-                    <form method="POST">
+        <!-- Independent Tables for Hardware Types and Locations -->
+        <div class="section tables-container">
+            <!-- Hardware Types Table -->
+            <div class="table-wrapper">
+                <h2>Hardware Types</h2>
+                <table>
+                    <tr>
+                        <th>Hardware Type</th>
+                        <th>Actions</th>
+                    </tr>
+                    <?php foreach ($data['types'] as $index => $type): ?>
+                    <tr>
                         <td>
-                            <input type="text" name="new_value" value="<?= htmlspecialchars($type) ?>">
+                            <form method="POST" style="display: inline-block; width: 100%;">
+                                <input type="text" name="new_value" value="<?= htmlspecialchars($type) ?>">
+                                <input type="hidden" name="index" value="<?= $index ?>">
+                                <input type="hidden" name="field" value="type">
                         </td>
                         <td>
-                            <input type="hidden" name="old_value" value="<?= htmlspecialchars($type) ?>">
-                            <input type="hidden" name="section" value="types">
-                            <button type="submit" name="edit" class="button">Update</button>
-                            <button type="submit" name="delete" class="button"
-                                onclick="return confirm('Are you sure you want to delete this type?')">Delete</button>
+                                <button type="submit" name="update" class="button">Update</button>
+                                <button type="submit" name="delete" class="button" onclick="return confirm('Are you sure you want to delete this hardware type?')">Delete</button>
+                            </form>
                         </td>
-                    </form>
-                </tr>
-                <?php endforeach; ?>
-            </table>
-        </div>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
 
-        <!-- Edit Locations -->
-        <div class="section">
-            <h2>Locations</h2>
-            <table>
-                <tr>
-                    <th>Location</th>
-                    <th>Actions</th>
-                </tr>
-                <?php foreach ($data['locations'] as $location): ?>
-                <tr>
-                    <form method="POST">
+            <!-- Locations Table -->
+            <div class="table-wrapper">
+                <h2>Locations</h2>
+                <table>
+                    <tr>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                    <?php foreach ($data['locations'] as $index => $location): ?>
+                    <tr>
                         <td>
-                            <input type="text" name="new_value" value="<?= htmlspecialchars($location) ?>">
+                            <form method="POST" style="display: inline-block; width: 100%;">
+                                <input type="text" name="new_value" value="<?= htmlspecialchars($location) ?>">
+                                <input type="hidden" name="index" value="<?= $index ?>">
+                                <input type="hidden" name="field" value="location">
                         </td>
                         <td>
-                            <input type="hidden" name="old_value" value="<?= htmlspecialchars($location) ?>">
-                            <input type="hidden" name="section" value="locations">
-                            <button type="submit" name="edit" class="button">Update</button>
-                            <button type="submit" name="delete" class="button"
-                                onclick="return confirm('Are you sure you want to delete this location?')">Delete</button>
+                                <button type="submit" name="update" class="button">Update</button>
+                                <button type="submit" name="delete" class="button" onclick="return confirm('Are you sure you want to delete this location?')">Delete</button>
+                            </form>
                         </td>
-                    </form>
-                </tr>
-                <?php endforeach; ?>
-            </table>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
         </div>
     </div>
 </body>
