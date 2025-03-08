@@ -218,7 +218,7 @@ if ($action === 'delete') {
   <?php $isAdmin = ($_SESSION['role'] === 'admin'); ?>
   <div class="nav">
     <a href="dashboard.php" class="nav-btn">← Back to Dashboard</a>
-    <a href="manage_json.php" class="nav-btn" <?php if (!$isAdmin) echo 'onclick="alert(\'Only admins are allowed to manage hardware types and locations, Iyak ka muna!\'); return false;"'; ?>>
+    <a href="manage_json.php" class="nav-btn" <?php if (!$isAdmin) echo 'onclick="alert(\'Only admins are allowed to manage hardware types and locations, Iyak ka muna!!\'); return false;"'; ?>>
      Location/H-Types
     </a>
   </div>
