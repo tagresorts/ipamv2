@@ -5,7 +5,7 @@ include 'config.php';
 include 'helpers.php';
 
 // Set the chart diameter (in pixels) for the pie charts
-$chartDiameter = 350;
+$chartDiameter = 400;
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
@@ -52,8 +52,9 @@ $subnetQuery = "SELECT IFNULL(subnets.subnet, 'N/A') as subnet, COUNT(*) as coun
 $subnetChartData = fetchChartData($pdo, $subnetQuery, $params);
 $subnetChartData['datasets'][0]['label'] = 'IP Distribution by Subnet';
 
-// Get current page for IP list
-$page = max(1, intval($_GET['page'] ?? 1));
+// Get current page for IP list from $_GET, defaulting to 1
+$currentPage = max(1, intval($_GET['page'] ?? 1));
+$perPage = 10; // Must match the value passed to getIPList()
 
 // Updated allowed sort columns including custom fields and extra columns
 $allowedSortColumns = [
@@ -71,11 +72,8 @@ $allowedSortColumns = [
     'last_updated'
 ];
 
-// IMPORTANT: Ensure your getIPList() function is updated to join the custom_fields table and aggregate its data.
-// For example, inside getIPList() use a query like:
-// SELECT ips.*, GROUP_CONCAT(CONCAT(custom_fields.field_name, ': ', custom_fields.field_value) SEPARATOR ', ') AS custom_fields
-// FROM ips LEFT JOIN custom_fields ON ips.id = custom_fields.ip_id ... GROUP BY ips.id ...
-list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $params, $allowedSortColumns, 'ip_address', 10, $page);
+// Get the IP list using the current page and per-page value
+list($ips, $totalPages, $currentPage, $totalItems) = getIPList($pdo, $whereClause, $params, $allowedSortColumns, 'ip_address', $perPage, $currentPage);
 ?>
 <?php include 'header.php'; ?>
 
@@ -126,8 +124,13 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
 <div id="ipListSection" class="container-content" style="display:none;">
   <div class="card">
     <div class="card-header">
+      <?php
+      // Calculate display range using a fixed per-page value
+      $startIndex = ($currentPage - 1) * $perPage + 1;
+      $endIndex = min($totalItems, $startIndex + $perPage - 1);
+      ?>
       <h3 class="ip-list-title">
-        📋 IP Address List - "Displaying <?= count($ips) ?> of <?= $totalItems ?> IPs"
+        📋 IP Address List - "Displaying <?= $startIndex ?> - <?= $endIndex ?> of <?= $totalItems ?> IPs"
       </h3>
       <div class="current-user"><?= htmlspecialchars((!empty($_SESSION['first_name']) ? $_SESSION['first_name'] : $_SESSION['username']) . " - " . $_SESSION['role']) ?></div>
     </div>
@@ -205,12 +208,12 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
       </tbody>
     </table>
     <div class="pagination">
-      <?php if ($page > 1): ?>
-        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>">« Previous</a>
+      <?php if ($currentPage > 1): ?>
+        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $currentPage - 1])) ?>">« Previous</a>
       <?php endif; ?>
-      <span>Page <?= $page ?> of <?= $totalPages ?></span>
-      <?php if ($page < $totalPages): ?>
-        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>">Next »</a>
+      <span>Page <?= $currentPage ?> of <?= $totalPages ?></span>
+      <?php if ($currentPage < $totalPages): ?>
+        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $currentPage + 1])) ?>">Next »</a>
       <?php endif; ?>
     </div>
     <?php else: ?>
@@ -277,44 +280,8 @@ list($ips, $totalPages, $page, $totalItems) = getIPList($pdo, $whereClause, $par
   </div>
 </div>
 
-<!-- Include jQuery and jQuery UI for column dragging functionality -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
-
 <!-- Column dragging functionality -->
-<script>
-$(document).ready(function(){
-  // Enable column dragging on the table header
-  $("#ipTable thead tr").sortable({
-      items: "th",
-      cursor: 'move',
-      update: function(event, ui) {
-         // Build the new order array based on data-col attribute of each header
-         var newOrder = [];
-         $("#ipTable thead tr th").each(function(){
-             newOrder.push($(this).data("col"));
-         });
-         // For each row in the tbody, reorder the cells to match the new header order
-         $("#ipTable tbody tr").each(function(){
-             var $row = $(this);
-             var cells = [];
-             // For each key in the new order, find the corresponding td
-             newOrder.forEach(function(colKey) {
-                 var cell = $row.find("td[data-col='" + colKey + "']");
-                 if(cell.length){
-                    cells.push(cell);
-                 }
-             });
-             $row.empty();
-             cells.forEach(function(cell){
-                 $row.append(cell);
-             });
-         });
-      }
-  });
-});
-</script>
+<script src="column_sorting.js"></script>
 
 <!-- Include custom JS for other functionality -->
 <script src="column_modal.js"></script>
