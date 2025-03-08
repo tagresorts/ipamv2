@@ -116,7 +116,13 @@
         <button type="button" onclick="window.print()" class="nav-btn">🖨 Print</button>
         <button type="button" id="toggleColumnsBtn" class="nav-btn">📑 Columns</button>
         <?php if (isset($userRole) && $userRole !== 'guest'): ?>
-          <a href="scheduler_manager.php" class="nav-btn">🗄 Cron</a>
+<a href="<?= $userRole === 'admin' ? 'scheduler_manager.php' : '#' ?>" class="nav-btn"
+   onclick="<?= $userRole !== 'admin' ? "alert('cron scheduler is for admins only, contact your poging admin if you need access'); return false;" : "" ?>">
+  Cron
+</a>
+
+
+
         <?php endif; ?>
       </div>
     </div>
