@@ -1,0 +1,407 @@
+/* Define CSS Variables for easier theming */
+:root {
+  --primary-color: #007bff;
+  --primary-dark: #0056b3;
+  --background-color: #f5f5f5;
+  --text-color: #333;
+  --header-bg: #001f3f; 
+ /*--header-bg: #fff;*/
+  --header-border: #eee;
+  --card-bg: #fff;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Base Styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  margin-bottom: 30px;
+}
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px; /* Uniform smaller font size */
+  line-height: 1.4; /* Reduced line height for a compact look */
+  min-height: 100vh;
+  color: var(--text-color);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background Image with Reduced Blur Effect */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('ipam.jpg') no-repeat center center fixed;
+  background-size: cover;
+  filter: blur(5px);
+  z-index: -1;
+}
+
+/* Dark Overlay for Better Contrast */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
+
+/* Legacy Navigation (if needed) */
+.nav {
+  background-color: var(--header-bg);
+  margin-bottom: 30px;
+  padding: 20px;
+  border-bottom: 2px solid var(--header-border);
+  box-shadow: 0 2px 4px var(--card-shadow);
+}
+
+/* Dark Blue Navbar */
+.navbar {
+  background-color: #001f3f;
+  width: 100%;
+  /* Removed extra padding to rely on container adjustments */
+  margin-bottom: 20px; /* Gap between nav and filter */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+.navbar-container {
+  max-width: 1350px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px; /* Reduced left/right padding */
+}
+.logo {
+  margin-left: 5px; /* Small left margin */
+}
+.logo img {
+  display: block;
+}
+.nav-links {
+  margin-right: 5px; /* Small right margin */
+}
+.nav-links a {
+  margin-left: 5px;
+}
+
+/* Navigation Buttons */
+.nav-btn {
+  text-decoration: none;
+  background: #001f3f;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: 0.3s ease-in-out;
+  display: inline-block;
+}
+.nav-btn:hover {
+  background: var(--primary-dark);
+  color: #fff;
+}
+.logout-btn {
+  text-decoration: none;
+  background: #dc3545;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.3s ease-in-out;
+}
+.logout-btn:hover {
+  background: #c9302c;
+}
+
+/* Alerts */
+.alert {
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.alert.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  margin-top: 20px;
+  width: 100%;
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 3px var(--card-shadow);
+  font-size: 14px;
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+}
+th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Forms */
+form div, .form-group {
+  margin: 5px 0;
+  font-size: 14px;
+}
+input, select {
+  padding: 5px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+/* Container for main content */
+.container {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--card-shadow);
+  margin: 20px;
+}
+
+/* Login Specific */
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px var(--card-shadow);
+}
+.login-form {
+  margin-top: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.login-button {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+.login-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Style for the "IP Address List" heading */
+.ip-list-title {
+  color: #000;
+  font-size: 14px;
+  font-weight: 400;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  text-shadow: none;
+}
+
+/* Modal for Column Toggle */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.modal.show {
+  display: block;
+}
+.modal-content {
+  background-color: #fefefe;
+  margin: 10% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 300px;
+  border-radius: 8px;
+}
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close:hover,
+.close:focus {
+  color: #000;
+}
+
+/* Print-Only Header */
+.print-header {
+  display: none;
+}
+
+@media print {
+  .navbar, .filter-form, .no-print {
+    display: none !important;
+  }
+  .print-header {
+    display: block;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .container {
+    display: block;
+    position: relative;
+    top: 0;
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  .nav, .login-container {
+    padding: 15px;
+  }
+  input, select {
+    max-width: 100%;
+  }
+  .navbar-container {
+    flex-direction: column;
+    text-align: center;
+    padding: 0 5px;
+  }
+  .nav-links {
+    flex-direction: column;
+    margin-top: 10px;
+    margin-right: 0;
+  }
+  .nav-btn, .logout-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Filter Bar fixed at the bottom */
+.filter-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #001f3f;
+  padding: 10px 0;
+  color: #fff;
+  z-index: 1000;
+}
+
+/* Adjust container-content margin so content isn't hidden behind filter bar */
+.container-content {
+  margin-bottom: 0;
+}
+
+/* Card container for the IP Address List */
+.card {
+  background-color: #fff;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+/* Hover effect for table rows */
+table tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Filter Form adjustments */
+.filter-form input[type="text"],
+.filter-form select {
+  width: 100px;
+  padding: 3px 5px;
+  border: none;
+  border-radius: 4px;
+  color: #000;
+}
+
+/* Filter Bar Container */
+.filter-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+/* Filter Form */
+.filter-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Filter Actions */
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Embossed Button Effect */
+.nav-btn,
+button.nav-btn,
+.logout-btn,
+.login-button {
+/*  background-color: #0056b3; */
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn:hover,
+button.nav-btn:hover,
+.logout-btn:hover,
+.login-button:hover {
+/*  background-color: #003f8f; */
+  box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Card header for the IP Address List */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+.current-user {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
