@@ -4,8 +4,15 @@ session_start();
 include 'config.php';
 include 'helpers.php';
 
-// Set the chart diameter (in pixels) for the pie charts
-$chartDiameter = 400;
+// Set individual chart dimensions (in pixels) for each chart
+$typeChartWidth = 600;
+$typeChartHeight = 300;
+$companyChartWidth = 400;
+$companyChartHeight = 400;
+$locationChartWidth = 600;
+$locationChartHeight = 300;
+$subnetChartWidth = 400;
+$subnetChartHeight = 400;
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
@@ -106,16 +113,16 @@ list($ips, $totalPages, $currentPage, $totalItems) = getIPList($pdo, $whereClaus
   </div>
   <div class="chart-grid">
     <div class="chart-cell">
-      <canvas id="typeChart" width="<?= $chartDiameter ?>" height="<?= $chartDiameter ?>"></canvas>
+      <canvas id="typeChart" width="<?= $typeChartWidth ?>" height="<?= $typeChartHeight ?>"></canvas>
     </div>
     <div class="chart-cell">
-      <canvas id="companyChart" width="<?= $chartDiameter ?>" height="<?= $chartDiameter ?>"></canvas>
+      <canvas id="companyChart" width="<?= $companyChartWidth ?>" height="<?= $companyChartHeight ?>"></canvas>
     </div>
     <div class="chart-cell">
-      <canvas id="locationChart" width="<?= $chartDiameter ?>" height="<?= $chartDiameter ?>"></canvas>
+      <canvas id="locationChart" width="<?= $locationChartWidth ?>" height="<?= $locationChartHeight ?>"></canvas>
     </div>
     <div class="chart-cell">
-      <canvas id="subnetChart" width="<?= $chartDiameter ?>" height="<?= $chartDiameter ?>"></canvas>
+      <canvas id="subnetChart" width="<?= $subnetChartWidth ?>" height="<?= $subnetChartHeight ?>"></canvas>
     </div>
   </div>
 </div>
